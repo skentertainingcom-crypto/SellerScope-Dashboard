@@ -44,7 +44,7 @@ function build(seed,mode){
  const s=tidyPhrase(seed), words=s.split(' '), arr=[];
  addUnique(arr,s);
  // Short-tail terms: keep meaningful one-word terms and adjacent two-word phrases.
- if(words.length===1)addUnique(arr,s,'Short-tail');
+ if(words.length===1)addUnique(arr,s);
  else {for(let i=0;i<words.length;i++) if(words[i].length>1)addUnique(arr,words[i]);
   for(let i=0;i<words.length-1;i++)addUnique(arr,words.slice(i,i+2).join(' '));
   if(words.length>2){

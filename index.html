@@ -65,13 +65,16 @@ function build(seed,mode){
   ]:[s,'thoughtful '+s,'personalized '+s,'handmade '+s,'unique '+s],
   gift:core?[core+' gift',core+' gift for her',core+' birthday gift',core+' anniversary gift','unique '+core+' gift']:['gift for her','birthday gift for her','anniversary gift','unique gift for her','thoughtful gift for her'],
   personalized:core?['personalized '+core,'custom '+core,'engraved '+core,'personalized '+core+' gift','custom '+core+' made to order']:['personalized gift','custom gift','engraved gift','personalized keepsake','custom made to order'],
-  wedding:core?[
-   has('wedding')||has('engagement')||has('bridal')?s:'wedding '+product,
-   has('wedding')||has('engagement')||has('bridal')?s:'bridal '+product,
-   product+' for bride',
-   'personalized '+product+' gift',
-   'gift for bride and groom'
-  ]:['bridal gift','wedding gift','engagement gift','gift for bride to be','modern wedding gift'],
+  wedding:core?(()=>{
+   const weddingProduct=words.filter(w=>!generic.includes(w)&&w!=='wedding'&&w!=='bridal').join(' ')||product;
+   return [
+    has('wedding')||has('engagement')||has('bridal')?s:'wedding '+weddingProduct,
+    has('wedding')||has('engagement')||has('bridal')?s:'bridal '+weddingProduct,
+    weddingProduct+' for bride and groom',
+    'personalized '+weddingProduct+' gift',
+    'gift for bride and groom'
+   ];
+  })():['bridal gift','wedding gift','engagement gift','gift for bride to be','modern wedding gift'],
   home:core?['modern '+core,'minimalist '+core,'boho '+core,core+' for living room decor',core+' housewarming gift']:['modern home decor','minimalist home decor','boho home decor','living room decor','housewarming gift']
  };
  for(const phrase of (variants[mode]||variants.general))addUnique(arr,phrase);

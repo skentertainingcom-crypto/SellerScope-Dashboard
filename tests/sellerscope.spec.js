@@ -184,3 +184,60 @@ test('empty seed shows a helpful message instead of generating rows', async ({ p
   await expect(page.locator('#toast')).toHaveText('Enter a seed keyword first.');
   await expect(page.locator('#count')).toHaveText('0 ideas');
 });
+
+
+test('exports a JSON backup containing saved research and manual checks', async ({ page }) => {
+  await page.locator('#seed').fill('ceramic vase');
+  await page.locator('#generate').click();
+  await page.locator('#projectName').fill('Ceramic launch');
+  await page.locator('#saveProject').click();
+  const answers = ['12', '240', 'Etsy Marketplace Insights'];
+  page.on('dialog', async (dialog) => dialog.accept(answers.shift() ?? ''));
+  await page.locator('#results [data-check]').first().click();
+
+  const downloadPromise = page.waitForEvent('download');
+  await page.locator('#exportBackup').click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toBe('sellerscope-research-backup.json');
+  const filePath = path.join(os.tmpdir(), download.suggestedFilename());
+  await download.saveAs(filePath);
+  const backup = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  expect(backup.format).toBe('sellerscope-research-backup');
+  expect(backup.version).toBe(1);
+  expect(backup.projects[0].name).toBe('Ceramic launch');
+  expect(Object.values(backup.checks)[0].source).toBe('Etsy Marketplace Insights');
+  fs.unlinkSync(filePath);
+});
+
+test('imports a valid backup and rejects an unsupported backup', async ({ page }) => {
+  const filePath = path.join(os.tmpdir(), 'sellerscope-test-backup.json');
+  const backup = {
+    format: 'sellerscope-research-backup',
+    version: 1,
+    exportedAt: '2026-10-18T00:00:00.000Z',
+    projects: [{
+      id: 'imported-set-1',
+      name: 'Imported mugs',
+      seed: 'ceramic mug',
+      mode: 'home',
+      ideas: [{ phrase: 'ceramic mug', type: 'Short-tail' }],
+      savedAt: '2026-10-18T00:00:00.000Z'
+    }],
+    checks: { 'ceramic mug': { searches: '0', listings: '18', source: 'Manual test', date: '2026-10-18' } }
+  };
+  fs.writeFileSync(filePath, JSON.stringify(backup));
+  await page.locator('#importBackup').setInputFiles(filePath);
+  await expect(page.locator('#toast')).toContainText('Backup imported');
+  await expect(page.locator('#savedProjects option')).toHaveCount(2);
+  await page.locator('#savedProjects').selectOption({ label: /Imported mugs/ });
+  await page.locator('#loadProject').click();
+  await expect(page.locator('#seed')).toHaveValue('ceramic mug');
+  await expect(page.locator('#market')).toHaveValue('home');
+  await expect(page.locator('#results .searches').first()).toHaveText('0');
+
+  fs.writeFileSync(filePath, JSON.stringify({ format: 'wrong-format', version: 99, projects: [], checks: {} }));
+  await page.locator('#importBackup').setInputFiles(filePath);
+  await expect(page.locator('#toast')).toHaveText('This is not a supported SellerScope backup.');
+  await expect(page.locator('#savedProjects option')).toHaveCount(2);
+  fs.unlinkSync(filePath);
+});

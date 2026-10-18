@@ -201,6 +201,8 @@ test('exports a JSON backup containing saved research and manual checks', async 
   const answers = ['12', '240', 'Etsy Marketplace Insights'];
   page.on('dialog', async (dialog) => dialog.accept(answers.shift() ?? ''));
   await page.locator('#results [data-check]').first().click();
+  await page.locator('#results [data-shortlist]').first().check();
+  await page.locator('#results [data-note]').first().fill('Gift-ready product angle');
 
   const downloadPromise = page.waitForEvent('download');
   await page.locator('#exportBackup').click();
@@ -213,19 +215,9 @@ test('exports a JSON backup containing saved research and manual checks', async 
   expect(backup.version).toBe(1);
   expect(backup.projects[0].name).toBe('Ceramic launch');
   expect(Object.values(backup.checks)[0].source).toBe('Etsy Marketplace Insights');
-  await page.locator('#results [data-shortlist]').first().check();
-  await page.locator('#results [data-note]').first().fill('Gift-ready product angle');
-  const shortlistDownloadPromise = page.waitForEvent('download');
-  await page.locator('#exportBackup').click();
-  const shortlistDownload = await shortlistDownloadPromise;
-  const shortlistFilePath = path.join(os.tmpdir(), shortlistDownload.suggestedFilename());
-  await shortlistDownload.saveAs(shortlistFilePath);
-  const shortlistBackup = JSON.parse(fs.readFileSync(shortlistFilePath, 'utf8'));
-  expect(Object.values(shortlistBackup.shortlist)[0]).toEqual({ selected: true, note: 'Gift-ready product angle' });
-  fs.unlinkSync(shortlistFilePath);
+  expect(Object.values(backup.shortlist)[0]).toEqual({ selected: true, note: 'Gift-ready product angle' });
   fs.unlinkSync(filePath);
 });
-
 test('imports a valid backup and rejects an unsupported backup', async ({ page }) => {
   const filePath = path.join(os.tmpdir(), 'sellerscope-test-backup.json');
   const backup = {

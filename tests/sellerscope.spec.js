@@ -16,6 +16,8 @@ test('generates unique ideas and updates the count', async ({ page }) => {
   const phrases = await page.locator('#results .kw').allTextContents();
   expect(phrases.length).toBeGreaterThan(0);
   expect(new Set(phrases.map((phrase) => phrase.toLowerCase())).size).toBe(phrases.length);
+  expect(phrases).not.toContain('moissanite engagement');
+  expect(phrases).not.toContain('engagement ring'.replace(' ring', '')); 
   await expect(page.locator('#count')).toHaveText(`${phrases.length} ideas`);
   await expect(page.locator('#toast')).toContainText('Etsy search was not performed');
 });

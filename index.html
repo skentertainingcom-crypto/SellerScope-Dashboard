@@ -50,11 +50,11 @@ function build(seed,mode){
  if(words.length>1){
   for(let i=0;i<words.length-1;i++)addUnique(arr,words.slice(i,i+2).join(' '));
   if(words.length>2){
-   const meaningful=words.filter(w=>!['for','with','and','the','a','an','of','to'].includes(w));
-   if(meaningful.length>=2)addUnique(arr,meaningful.slice(0,2).join(' '));
+   // Do not create fragments by stripping connectors from a phrase (e.g. "ring for her" -> "ring her").
+   // Adjacent phrases above preserve the original word order and are safer suggestions.
   }
  }
- const generic=['for','with','and','the','a','an','of','to','gift','birthday','anniversary','personalized','custom','engraved','wedding','engagement','bridal','bride','modern','minimalist','boho','vintage','handmade','unique','best','decor','housewarming'];
+ const generic=['for','with','and','the','a','an','of','to','her','him','them','their','his','hers','your','you','me','my','our','gift','gifts','birthday','anniversary','personalized','personalised','custom','engraved','wedding','engagement','bridal','bride','groom','modern','minimalist','boho','vintage','handmade','unique','best','decor','decoration','housewarming'];
  const core=words.filter(w=>!generic.includes(w)).join(' ');
  const has=word=>words.includes(word);
  const variants={

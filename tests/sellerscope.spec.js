@@ -507,3 +507,24 @@ test('neutralizes formula-like seller notes in listing test plan exports', async
   expect(csv).toContain('"\'=HYPERLINK(""https://example.com"",""open"")"');
   fs.unlinkSync(filePath);
 });
+
+
+test('searches generated phrases and seller notes without changing saved ideas', async ({ page }) => {
+  await page.locator('#seed').fill('ceramic vase');
+  await page.locator('#generate').click();
+  const originalCount = await page.locator('#results tr').count();
+  expect(originalCount).toBeGreaterThan(1);
+
+  await page.locator('#results [data-note]').first().fill('gift for a new home');
+  await page.locator('#results [data-note]').first().dispatchEvent('change');
+  await page.locator('#keywordSearch').fill('new home');
+  await expect(page.locator('#results tr')).toHaveCount(1);
+  await expect(page.locator('#results .kw').first()).toBeVisible();
+
+  await page.locator('#keywordSearch').fill('ceramic');
+  expect(await page.locator('#results tr').count()).toBeGreaterThan(1);
+  await page.locator('#keywordSearch').fill('phrase-that-does-not-exist');
+  await expect(page.locator('#results .empty')).toContainText('No keywords in this category');
+  await page.locator('#keywordSearch').fill('');
+  await expect(page.locator('#results tr')).toHaveCount(originalCount);
+});

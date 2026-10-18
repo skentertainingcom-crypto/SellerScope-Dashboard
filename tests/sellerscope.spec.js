@@ -388,3 +388,25 @@ test('explains research priority scores with transparent heuristic signals', asy
   expect(explanation).toContain('matches seed terms');
   expect(explanation).toContain('not Etsy search volume');
 });
+
+test('adds niche-aware suggestions for craft, bath, art, and digital products', async ({ page }) => {
+  const cases = [
+    { seed: 'crochet pattern', expected: 'crochet pattern for beginners' },
+    { seed: 'handmade soap', expected: 'soap gift set' },
+    { seed: 'botanical art print', expected: 'botanical art print gallery wall' },
+    { seed: 'digital planner', expected: 'digital planner download' },
+  ];
+
+  for (const { seed, expected } of cases) {
+    await page.locator('#seed').fill(seed);
+    await page.locator('#market').selectOption('general');
+    await page.locator('#generate').click();
+
+    const phrases = await page.locator('#results .kw').allTextContents();
+    expect(phrases, `missing niche suggestion for ${seed}`).toContain(expected);
+    expect(
+      new Set(phrases.map((phrase) => phrase.toLowerCase())).size,
+      `duplicate phrases for ${seed}`,
+    ).toBe(phrases.length);
+  }
+});

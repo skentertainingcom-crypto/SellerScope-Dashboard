@@ -329,5 +329,7 @@ test('shortlist-only filter shows selected phrases and composes with tail filter
 
   await page.locator('#shortlistOnly').click();
   await expect(page.locator('#shortlistOnly')).toHaveAttribute('aria-pressed', 'false');
-  await expect(page.locator('#results .kw')).toHaveCount(0);
+  const unfilteredLongTailTypes = await page.locator('#results .type').allTextContents();
+  expect(unfilteredLongTailTypes.length).toBeGreaterThan(0);
+  expect(unfilteredLongTailTypes.every((type) => type === 'Long-tail')).toBe(true);
 });

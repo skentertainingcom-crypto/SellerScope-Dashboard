@@ -171,6 +171,7 @@ test('saves, restores, and deletes a keyword research set', async ({ page }) => 
   await expect(page.locator('#market')).toHaveValue('home');
   await expect(page.locator('#results .kw')).toHaveText(original);
 
+  page.once('dialog', dialog => dialog.accept());
   await page.locator('#deleteProject').click();
   await expect(page.locator('#savedProjects option')).toHaveCount(1);
   await expect(page.locator('#toast')).toContainText('deleted');

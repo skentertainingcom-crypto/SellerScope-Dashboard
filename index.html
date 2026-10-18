@@ -27,16 +27,19 @@ button{border:0;border-radius:10px;padding:12px 16px;font-weight:750;background:
 <section class="card">
 <label class="label" for="seed">Seed keyword or product phrase</label>
 <div class="controls"><input id="seed" maxlength="120" placeholder="e.g. moissanite engagement ring"><select id="market"><option value="general">General audience</option><option value="gift">Gift intent</option><option value="personalized">Personalized items</option><option value="wedding">Wedding / engagement</option><option value="home">Home decor</option></select><button id="generate">Generate ideas</button></div>
-<div class="hint">Short-tail: 1–2 words · Mid-tail: 3–4 words · Long-tail: 5+ words. These are generated ideas, not verified Etsy searches or demand metrics.</div>
+<div class="hint">Short-tail: 1–2 words · Mid-tail: 3–4 words · Long-tail: 5+ words. Ideas are generated, not live Etsy results. Use “Record check” only after checking a phrase in a permitted source.</div>
 <div class="summary"><span class="chip" id="count">0 ideas</span><span class="chip">Search volume: not connected</span><span class="chip">Competition: not connected</span></div>
 <div class="tabletop"><h2>Keyword ideas</h2><div class="actions"><button class="secondary" id="copyAll">Copy all</button><button class="secondary" id="export">Export CSV</button></div></div>
 <div class="filters"><button class="filter active" data-filter="All">All</button><button class="filter" data-filter="Short-tail">Short-tail</button><button class="filter" data-filter="Mid-tail">Mid-tail</button><button class="filter" data-filter="Long-tail">Long-tail</button></div>
-<div class="tablewrap"><table><thead><tr><th>Keyword phrase</th><th>Idea type</th><th>Search volume</th><th>Competition</th><th>Action</th></tr></thead><tbody id="results"><tr><td class="empty" colspan="5">Enter a phrase and select “Generate ideas”.</td></tr></tbody></table></div>
+<div class="tablewrap"><table><thead><tr><th>Keyword phrase</th><th>Idea type</th><th>Searches (manual)</th><th>Listings (manual)</th><th>Verification</th><th>Action</th></tr></thead><tbody id="results"><tr><td class="empty" colspan="5">Enter a phrase and select “Generate ideas”.</td></tr></tbody></table></div>
 <div id="toast" class="toast" role="status"></div>
-<div class="notice"><strong>For real Etsy search data:</strong> Check Etsy Marketplace Insights in Shop Manager → Stats → Marketplace Insights, if available to your shop. SellerScope does not automatically access that tool; manually enter verified values only when available.</div>
+<div class="notice"><strong>For real Etsy search data:</strong> Use Etsy Marketplace Insights if available to your shop. “Record check” saves values you observed, the source, and date on this device. SellerScope does not fetch or validate values automatically.</div>
 </section><p class="foot">SellerScope is an independent project and is not affiliated with Etsy. Metrics are intentionally blank until a reliable, permitted data source is connected. This prototype has no backend, login, or live Etsy connection.</p></main>
 <script>
-let current=[],activeFilter='All';const $=id=>document.getElementById(id);
+let current=[],activeFilter='All';const $=id=>document.getElementById(id);const STORE_KEY='sellerscope.keywordChecks.v1';
+function loadChecks(){try{return JSON.parse(localStorage.getItem(STORE_KEY)||'{}')}catch(e){return {}}}
+let checks=loadChecks();
+function saveChecks(){try{localStorage.setItem(STORE_KEY,JSON.stringify(checks));return true}catch(e){notify('Saved for this session only; browser storage is unavailable.');return false}}
 function normalize(s){return String(s||'').toLowerCase().replace(/[’']/g,"'").replace(/[^a-z0-9+#.-]+/g,' ').trim().replace(/\s+/g,' ')}
 function tidyPhrase(s){return normalize(s).split(' ').filter(Boolean).join(' ')}
 function addUnique(arr, phrase){phrase=tidyPhrase(phrase).replace(/\b([a-z0-9+#.-]+)(\s+\1\b)+/gi,'$1');if(!phrase)return;const key=phrase.toLowerCase();if(!arr.some(x=>x.phrase.toLowerCase()===key)){const n=phrase.split(' ').length;const type=n<=2?'Short-tail':n<=4?'Mid-tail':'Long-tail';arr.push({phrase,type})}}
@@ -53,32 +56,32 @@ function build(seed,mode){
   }
  }
  // Build phrases without blindly appending a word already at the end of the seed.
- const endsWith=(word)=>words[words.length-1]===word;
+ const has=word=>words.includes(word);
+ const prefix=word=>has(word)?s:word+' '+s;
  const variants={
- general:[
-  ['Mid-tail','minimalist '+s],['Mid-tail','vintage '+s],['Mid-tail','handmade '+s],
-  ['Long-tail','best '+s+' gift'],['Long-tail',s+' for everyday wear'],['Long-tail','unique '+s+' design'],['Long-tail',s+' made to order']
- ],
- gift:[['Mid-tail',s+' gift'],['Mid-tail','gift for her '+s],['Long-tail',s+' birthday gift for her'],['Long-tail',s+' anniversary gift'],['Long-tail','unique '+s+' gift for her']],
- personalized:[['Mid-tail','personalized '+s],['Mid-tail','custom '+s],['Mid-tail','engraved '+s],['Long-tail','personalized '+s+' gift'],['Long-tail','custom '+s+' made to order']],
- wedding:[['Mid-tail','bridal '+s],['Mid-tail','wedding '+s],['Long-tail',s+' for bride to be'],['Long-tail','classic '+s+' engagement gift'],['Long-tail','modern '+s+' wedding style']],
- home:[['Mid-tail','modern '+s],['Mid-tail','minimalist '+s],['Mid-tail','boho '+s],['Long-tail',s+' for living room decor'],['Long-tail',s+' housewarming gift']]
+ general:[prefix('minimalist'),prefix('vintage'),prefix('handmade'),has('gift')?'best '+s:'best '+s+' gift',has('wear')?s:s+' for everyday wear',prefix('unique'),has('order')?s:s+' made to order'],
+ gift:[has('gift')?s:s+' gift','gift for her '+s,has('birthday')?s:s+' birthday gift for her',has('anniversary')?s:s+' anniversary gift',has('gift')?'unique '+s:'unique '+s+' gift for her'],
+ personalized:[prefix('personalized'),prefix('custom'),prefix('engraved'),has('gift')?'personalized '+s:'personalized '+s+' gift',has('order')?'custom '+s:'custom '+s+' made to order'],
+ wedding:[prefix('bridal'),prefix('wedding'),has('bride')?s:s+' for bride to be',has('engagement')?'classic '+s:'classic '+s+' engagement gift',has('wedding')?'modern '+s:'modern '+s+' wedding style'],
+ home:[prefix('modern'),prefix('minimalist'),prefix('boho'),has('decor')?s:s+' for living room decor',has('housewarming')?s:s+' housewarming gift']
  };
- for(const [type,phrase] of (variants[mode]||variants.general))addUnique(arr,phrase);
+ for(const phrase of (variants[mode]||variants.general))addUnique(arr,phrase);
  return arr;
 }
 function notify(t){$('toast').textContent=t;$('toast').classList.add('show')}
 async function copy(t){try{await navigator.clipboard.writeText(t);notify('Copied.')}catch(e){notify('Clipboard unavailable; select and copy manually.')}}
 function render(){
- const visible=current.filter(x=>activeFilter==='All'||x.type===activeFilter||x.type==='Seed phrase'&&activeFilter==='All');
+ const visible=current.filter(x=>activeFilter==='All'||x.type===activeFilter);
  $('count').textContent=current.length+' ideas';
- $('results').innerHTML=visible.length?visible.map((r,i)=>`<tr><td><span class="kw"></span></td><td><span class="type"></span></td><td><span class="unavailable">Not available</span></td><td><span class="unavailable">Not available</span></td><td><button class="secondary" data-i="${i}">Copy</button></td></tr>`).join(''):'<tr><td class="empty" colspan="5">No keywords in this category.</td></tr>';
- [...$('results').querySelectorAll('tr')].forEach((tr,i)=>{if(visible[i]){tr.querySelector('.kw').textContent=visible[i].phrase;tr.querySelector('.type').textContent=visible[i].type}});
+ $('results').innerHTML=visible.length?visible.map((r,i)=>`<tr><td><span class="kw"></span></td><td><span class="type"></span></td><td class="searches"></td><td class="listings"></td><td><span class="verify-state"></span><button class="secondary" data-check="${i}">Record check</button></td><td><button class="secondary" data-i="${i}">Copy</button></td></tr>`).join(''):'<tr><td class="empty" colspan="6">No keywords in this category.</td></tr>';
+ [...$('results').querySelectorAll('tr')].forEach((tr,i)=>{if(visible[i]){const item=visible[i],saved=checks[item.phrase.toLowerCase()];tr.querySelector('.kw').textContent=item.phrase;tr.querySelector('.type').textContent=item.type;tr.querySelector('.searches').textContent=saved?.searches||'—';tr.querySelector('.listings').textContent=saved?.listings||'—';tr.querySelector('.verify-state').textContent=saved?'Checked '+saved.date+' · '+saved.source:'Unverified'}});
  $('results').querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>copy(visible[+b.dataset.i].phrase));
+ $('results').querySelectorAll('[data-check]').forEach(b=>b.onclick=()=>recordCheck(visible[+b.dataset.check]));
 }
 $('generate').onclick=()=>{const s=tidyPhrase($('seed').value);if(!s){$('seed').focus();notify('Enter a seed keyword first.');return}current=build(s,$('market').value);activeFilter='All';document.querySelectorAll('.filter').forEach(b=>b.classList.toggle('active',b.dataset.filter==='All'));render();notify('Generated '+current.length+' unique ideas. Etsy search was not performed.')};
 $('seed').onkeydown=e=>{if(e.key==='Enter')$('generate').click()};
 document.querySelectorAll('.filter').forEach(b=>b.onclick=()=>{activeFilter=b.dataset.filter;document.querySelectorAll('.filter').forEach(x=>x.classList.toggle('active',x===b));render()});
-$('copyAll').onclick=()=>current.length?copy(current.map(x=>x.phrase).join('\n')):notify('Generate ideas first.');
-$('export').onclick=()=>{if(!current.length){notify('Generate ideas first.');return}const data=[['keyword_phrase','idea_type','etsy_search_volume','competition','data_status'],...current.map(x=>[x.phrase,x.type,'','','not_connected'])];const csv=data.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\r\n');const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download='sellerscope-keyword-ideas.csv';a.click();URL.revokeObjectURL(url);notify('CSV exported. Metric fields are blank, not estimated.')};
+function recordCheck(item){const old=checks[item.phrase.toLowerCase()]||{};const searches=prompt('Enter the search count you observed. Leave blank if unavailable.',old.searches||'');if(searches===null)return;const listings=prompt('Enter the listing count you observed. Leave blank if unavailable.',old.listings||'');if(listings===null)return;const source=prompt('Where did you check this phrase? (Example: Etsy Marketplace Insights)',old.source||'Etsy Marketplace Insights');if(source===null)return;if(!source.trim()){notify('A source is required to record a check.');return}const validCount=v=>v.trim()===''||/^\\d+(\\.\\d+)?$/.test(v.trim());if(!validCount(searches)||!validCount(listings)){notify('Counts must be non-negative numbers or left blank.');return}checks[item.phrase.toLowerCase()]={searches:searches.trim(),listings:listings.trim(),source:source.trim(),date:new Date().toISOString().slice(0,10)};saveChecks();render();notify('Manual check recorded. SellerScope has not independently verified the values.')}
+$('copyAll').onclick=()=>current.length?copy(current.map(x=>x.phrase).join('\\n')):notify('Generate ideas first.');
+$('export').onclick=()=>{if(!current.length){notify('Generate ideas first.');return}const data=[['keyword_phrase','idea_type','search_count_manual','listing_count_manual','verification_status','source','checked_date'],...current.map(x=>{const v=checks[x.phrase.toLowerCase()];return [x.phrase,x.type,v?.searches||'',v?.listings||'',v?'manually_recorded':'unverified',v?.source||'',v?.date||'']})];const csv=data.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\\r\\n');const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download='sellerscope-keyword-ideas.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);notify('CSV exported with manual-check status and source details.')};
 </script></body></html>

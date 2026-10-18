@@ -333,3 +333,19 @@ test('shortlist-only filter shows selected phrases and composes with tail filter
   expect(unfilteredLongTailTypes.length).toBeGreaterThan(0);
   expect(unfilteredLongTailTypes.every((type) => type === 'Long-tail')).toBe(true);
 });
+
+test('shows transparent research priority and sorts by heuristic score', async ({ page }) => {
+  await page.locator('#seed').fill('personalized ceramic vase');
+  await page.locator('#market').selectOption('home');
+  await page.locator('#generate').click();
+
+  const scores = await page.locator('#results .priority strong').allTextContents();
+  expect(scores.length).toBeGreaterThan(0);
+  expect(scores.every((score) => /^([0-5])\/5 · (Strong|Review|Explore)$/.test(score))).toBe(true);
+  await expect(page.locator('.hint').filter({ hasText: 'not search volume' })).toBeVisible();
+
+  await page.locator('#prioritySort').selectOption('priority');
+  const sortedScores = (await page.locator('#results .priority strong').allTextContents())
+    .map((score) => Number(score.split('/')[0]));
+  expect(sortedScores).toEqual([...sortedScores].sort((a, b) => b - a));
+});

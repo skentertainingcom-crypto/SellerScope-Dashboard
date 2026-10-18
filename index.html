@@ -18,8 +18,8 @@ button{border:0;border-radius:10px;padding:12px 16px;font-weight:750;background:
 .tablewrap{overflow:auto;margin-top:13px}table{border-collapse:collapse;width:100%;min-width:650px;text-align:left;font-size:13px}th{font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:#9296a7;padding:11px 9px;border-bottom:1px solid var(--line)}td{padding:12px 9px;border-bottom:1px solid #f0f0f5}
 .kw{font-weight:750}.type{font-size:10px;background:#f0effa;color:#6255c5;padding:4px 7px;border-radius:99px;white-space:nowrap}.unavailable{font-size:11px;color:#8b6420;background:#fff2d9;border-radius:6px;padding:5px 7px}
 .empty{text-align:center;color:var(--muted);padding:25px 10px}.notice{background:#f4f2ff;border:1px solid #e6e2ff;border-radius:12px;padding:13px 15px;color:#5c5684;font-size:12px;line-height:1.6;margin-top:15px}.notice strong{color:#3c356d}
-.toast{display:none;background:#e3f7ee;color:#187653;font-size:12px;border-radius:9px;padding:10px 12px;margin-top:12px}.toast.show{display:block}.foot{margin:20px 3px}
-@media(max-width:650px){.top{align-items:flex-start;flex-direction:column}.controls{grid-template-columns:1fr}.card{padding:15px}.controls button{min-height:44px}}
+.saved-tools{margin-top:16px;padding:13px;background:#fafaff;border:1px solid var(--line);border-radius:12px}.saved-heading{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px}.saved-heading .hint{margin:0}.saved-controls{display:grid;grid-template-columns:minmax(130px,1fr) auto minmax(150px,1fr) auto auto;gap:7px;margin-top:10px}.saved-controls input,.saved-controls select{min-width:0;width:100%;border:1px solid #dfe0eb;border-radius:9px;padding:9px;font-size:12px;background:white;color:var(--ink)}.saved-tools>.hint{margin-top:8px}.toast{display:none;background:#e3f7ee;color:#187653;font-size:12px;border-radius:9px;padding:10px 12px;margin-top:12px}.toast.show{display:block}.foot{margin:20px 3px}
+@media(max-width:800px){.saved-controls{grid-template-columns:1fr 1fr}}@media(max-width:650px){.top{align-items:flex-start;flex-direction:column}.controls,.saved-controls{grid-template-columns:1fr}.card{padding:15px}.controls button,.saved-controls button{min-height:44px}}
 </style></head>
 <body><main class="wrap">
 <header class="top"><div class="brand">Seller<span>Scope</span></div><div class="status">● Etsy API review pending</div></header>
@@ -27,59 +27,85 @@ button{border:0;border-radius:10px;padding:12px 16px;font-weight:750;background:
 <section class="card">
 <label class="label" for="seed">Seed keyword or product phrase</label>
 <div class="controls"><input id="seed" maxlength="120" placeholder="e.g. moissanite engagement ring"><select id="market"><option value="general">General audience</option><option value="gift">Gift intent</option><option value="personalized">Personalized items</option><option value="wedding">Wedding / engagement</option><option value="home">Home decor</option></select><button id="generate">Generate ideas</button></div>
-<div class="hint">Short-tail: 1–2 words · Mid-tail: 3–4 words · Long-tail: 5+ words. These are generated ideas, not verified Etsy searches or demand metrics.</div>
+<div class="hint">Short-tail: 1–2 words · Mid-tail: 3–4 words · Long-tail: 5+ words. Ideas are generated, not live Etsy results. Use “Record check” only after checking a phrase in a permitted source.</div>
+<div class="saved-tools" aria-labelledby="savedTitle"><div class="saved-heading"><strong id="savedTitle">Saved research</strong><span class="hint">Stored only in this browser</span></div><div class="saved-controls"><input id="projectName" maxlength="60" placeholder="Name this research set" aria-label="Research set name"><button class="secondary" id="saveProject">Save current set</button><select id="savedProjects" aria-label="Saved research sets"><option value="">Choose saved set</option></select><button class="secondary" id="loadProject">Load</button><button class="secondary" id="deleteProject">Delete</button><button class="secondary" id="exportBackup">Export backup</button><button class="secondary" id="importBackupButton">Import backup</button><input id="importBackup" type="file" accept="application/json,.json" hidden></div><div class="hint">Save sets on this device, or export/import a JSON backup to move research between browsers. Backups include saved sets and manual checks.</div></div>
 <div class="summary"><span class="chip" id="count">0 ideas</span><span class="chip">Search volume: not connected</span><span class="chip">Competition: not connected</span></div>
 <div class="tabletop"><h2>Keyword ideas</h2><div class="actions"><button class="secondary" id="copyAll">Copy all</button><button class="secondary" id="export">Export CSV</button></div></div>
 <div class="filters"><button class="filter active" data-filter="All">All</button><button class="filter" data-filter="Short-tail">Short-tail</button><button class="filter" data-filter="Mid-tail">Mid-tail</button><button class="filter" data-filter="Long-tail">Long-tail</button></div>
-<div class="tablewrap"><table><thead><tr><th>Keyword phrase</th><th>Idea type</th><th>Search volume</th><th>Competition</th><th>Action</th></tr></thead><tbody id="results"><tr><td class="empty" colspan="5">Enter a phrase and select “Generate ideas”.</td></tr></tbody></table></div>
+<div class="tablewrap"><table><thead><tr><th>Keyword phrase</th><th>Idea type</th><th>Searches (manual)</th><th>Listings (manual)</th><th>Verification</th><th>Action</th></tr></thead><tbody id="results"><tr><td class="empty" colspan="6">Enter a phrase and select “Generate ideas”.</td></tr></tbody></table></div>
 <div id="toast" class="toast" role="status"></div>
-<div class="notice"><strong>For real Etsy search data:</strong> Check Etsy Marketplace Insights in Shop Manager → Stats → Marketplace Insights, if available to your shop. SellerScope does not automatically access that tool; manually enter verified values only when available.</div>
+<div class="notice"><strong>For real Etsy search data:</strong> Use Etsy Marketplace Insights if available to your shop. “Record check” saves values you observed, the source, and date on this device. SellerScope does not fetch or validate values automatically.</div>
 </section><p class="foot">SellerScope is an independent project and is not affiliated with Etsy. Metrics are intentionally blank until a reliable, permitted data source is connected. This prototype has no backend, login, or live Etsy connection.</p></main>
 <script>
-let current=[],activeFilter='All';const $=id=>document.getElementById(id);
+let current=[],activeFilter='All';const $=id=>document.getElementById(id);const STORE_KEY='sellerscope.keywordChecks.v1';const PROJECTS_KEY='sellerscope.savedResearch.v1';
+function loadChecks(){try{return JSON.parse(localStorage.getItem(STORE_KEY)||'{}')}catch(e){return {}}}
+let checks=loadChecks();
+function saveChecks(){try{localStorage.setItem(STORE_KEY,JSON.stringify(checks));return true}catch(e){notify('Saved for this session only; browser storage is unavailable.');return false}}
 function normalize(s){return String(s||'').toLowerCase().replace(/[’']/g,"'").replace(/[^a-z0-9+#.-]+/g,' ').trim().replace(/\s+/g,' ')}
 function tidyPhrase(s){return normalize(s).split(' ').filter(Boolean).join(' ')}
-function addUnique(arr, phrase, forcedType){phrase=tidyPhrase(phrase);if(!phrase)return;const key=phrase.toLowerCase();if(!arr.some(x=>x.phrase.toLowerCase()===key)){const n=phrase.split(' ').length;const type=forcedType|| (n<=2?'Short-tail':n<=4?'Mid-tail':'Long-tail');arr.push({phrase,type})}}
+function addUnique(arr, phrase, preserveSeed=false){phrase=tidyPhrase(phrase).replace(/\b([a-z0-9+#.-]+(?:\s+[a-z0-9+#.-]+){0,3})\s+\1\b/gi,'$1').replace(/\b([a-z0-9+#.-]+)(\s+\1\b)+/gi,'$1');if(!phrase)return;if(!preserveSeed&&/^(?:for|with|and|the|a|an|of|to)\b|\b(?:for|with|and|the|a|an|of|to)$/.test(phrase))return;const key=phrase.toLowerCase();if(!arr.some(x=>x.phrase.toLowerCase()===key)){const n=phrase.split(' ').length;const type=n<=2?'Short-tail':n<=4?'Mid-tail':'Long-tail';arr.push({phrase,type})}}
 function build(seed,mode){
  const s=tidyPhrase(seed), words=s.split(' '), arr=[];
- addUnique(arr,s,'Seed phrase');
- // Short-tail terms: keep meaningful one-word terms and adjacent two-word phrases.
- if(words.length===1)addUnique(arr,s,'Short-tail');
- else {
-  for(let i=0;i<words.length;i++) if(words[i].length>1)addUnique(arr,words[i],'Short-tail');
-  for(let i=0;i<words.length-1;i++)addUnique(arr,words.slice(i,i+2).join(' '),'Short-tail');
-  if(words.length>2){
-   const meaningful=words.filter(w=>!['for','with','and','the','a','an','of','to'].includes(w));
-   if(meaningful.length>=2)addUnique(arr,meaningful.slice(0,2).join(' '),'Short-tail');
-  }
- }
- // Build phrases without blindly appending a word already at the end of the seed.
- const endsWith=(word)=>words[words.length-1]===word;
+ addUnique(arr,s,true);
+ // Keep the seller's complete seed intact. Arbitrary adjacent-word fragments often
+ // lose product intent (e.g. "moissanite engagement") and inflate the idea count.
+ const generic=['for','with','and','the','a','an','of','to','her','him','them','their','his','hers','your','you','me','my','our','gift','gifts','birthday','anniversary','personalized','personalised','custom','engraved','modern','minimalist','boho','vintage','handmade','unique','best','housewarming'];
+ const core=words.filter(w=>!generic.includes(w)).join(' ');
+ const product=core||s;
+ const has=word=>words.includes(word);
  const variants={
- general:[
-  ['Mid-tail','minimalist '+s],['Mid-tail','vintage '+s],['Mid-tail','handmade '+s],
-  ['Long-tail','best '+s+' gift'],['Long-tail',s+' for everyday wear'],['Long-tail','unique '+s+' design'],['Long-tail',s+' made to order']
- ],
- gift:[['Mid-tail',s+' gift'],['Mid-tail','gift for her '+s],['Long-tail',s+' birthday gift for her'],['Long-tail',s+' anniversary gift'],['Long-tail','unique '+s+' gift for her']],
- personalized:[['Mid-tail','personalized '+s],['Mid-tail','custom '+s],['Mid-tail','engraved '+s],['Long-tail','personalized '+s+' gift'],['Long-tail','custom '+s+' made to order']],
- wedding:[['Mid-tail','bridal '+s],['Mid-tail','wedding '+s],['Long-tail',s+' for bride to be'],['Long-tail','classic '+s+' engagement gift'],['Long-tail','modern '+s+' wedding style']],
- home:[['Mid-tail','modern '+s],['Mid-tail','minimalist '+s],['Mid-tail','boho '+s],['Long-tail',s+' for living room decor'],['Long-tail',s+' housewarming gift']]
+  // Build modifiers around the product phrase, not the full seed, to avoid
+  // duplicated connectors and phrases like "ring for her for everyday use".
+  general:core?[
+   has('minimalist')?s:'minimalist '+product,
+   has('vintage')?s:'vintage '+product,
+   has('handmade')?s:'handmade '+product,
+   has('gift')?s:product+' gift',
+   has('unique')?s:'unique '+product,
+   has('order')?s:product+' made to order'
+  ]:[s,'thoughtful '+s,'personalized '+s,'handmade '+s,'unique '+s],
+  gift:core?[core+' gift',core+' gift for her',core+' birthday gift',core+' anniversary gift','unique '+core+' gift']:['gift for her','birthday gift for her','anniversary gift','unique gift for her','thoughtful gift for her'],
+  personalized:core?['personalized '+core,'custom '+core,'engraved '+core,'personalized '+core+' gift','custom '+core+' made to order']:['personalized gift','custom gift','engraved gift','personalized keepsake','custom made to order'],
+  wedding:core?(()=>{
+   const weddingProduct=words.filter(w=>!generic.includes(w)&&w!=='wedding'&&w!=='bridal').join(' ')||product;
+   return [
+    has('wedding')||has('engagement')||has('bridal')?s:'wedding '+weddingProduct,
+    has('wedding')||has('engagement')||has('bridal')?s:'bridal '+weddingProduct,
+    weddingProduct+' for bride and groom',
+    'personalized '+weddingProduct+' gift',
+    'gift for bride and groom'
+   ];
+  })():['bridal gift','wedding gift','engagement gift','gift for bride to be','modern wedding gift'],
+  home:core?['modern '+core,'minimalist '+core,'boho '+core,core+' for living room decor',core+' housewarming gift']:['modern home decor','minimalist home decor','boho home decor','living room decor','housewarming gift']
  };
- for(const [type,phrase] of (variants[mode]||variants.general))addUnique(arr,phrase);
+ for(const phrase of (variants[mode]||variants.general))addUnique(arr,phrase);
  return arr;
 }
 function notify(t){$('toast').textContent=t;$('toast').classList.add('show')}
 async function copy(t){try{await navigator.clipboard.writeText(t);notify('Copied.')}catch(e){notify('Clipboard unavailable; select and copy manually.')}}
 function render(){
- const visible=current.filter(x=>activeFilter==='All'||x.type===activeFilter||x.type==='Seed phrase'&&activeFilter==='All');
+ const visible=current.filter(x=>activeFilter==='All'||x.type===activeFilter);
  $('count').textContent=current.length+' ideas';
- $('results').innerHTML=visible.length?visible.map((r,i)=>`<tr><td><span class="kw"></span></td><td><span class="type"></span></td><td><span class="unavailable">Not available</span></td><td><span class="unavailable">Not available</span></td><td><button class="secondary" data-i="${i}">Copy</button></td></tr>`).join(''):'<tr><td class="empty" colspan="5">No keywords in this category.</td></tr>';
- [...$('results').querySelectorAll('tr')].forEach((tr,i)=>{if(visible[i]){tr.querySelector('.kw').textContent=visible[i].phrase;tr.querySelector('.type').textContent=visible[i].type}});
+ $('results').innerHTML=visible.length?visible.map((r,i)=>`<tr><td><span class="kw"></span></td><td><span class="type"></span></td><td class="searches"></td><td class="listings"></td><td><span class="verify-state"></span><button class="secondary" data-check="${i}">Record check</button></td><td><button class="secondary" data-i="${i}">Copy</button></td></tr>`).join(''):'<tr><td class="empty" colspan="6">No keywords in this category.</td></tr>';
+ [...$('results').querySelectorAll('tr')].forEach((tr,i)=>{if(visible[i]){const item=visible[i],saved=checks[item.phrase.toLowerCase()];tr.querySelector('.kw').textContent=item.phrase;tr.querySelector('.type').textContent=item.type;tr.querySelector('.searches').textContent=saved?.searches??'—';tr.querySelector('.listings').textContent=saved?.listings??'—';tr.querySelector('.verify-state').textContent=saved?'Checked '+saved.date+' · '+saved.source:'Unverified'}});
  $('results').querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>copy(visible[+b.dataset.i].phrase));
+ $('results').querySelectorAll('[data-check]').forEach(b=>b.onclick=()=>recordCheck(visible[+b.dataset.check]));
 }
 $('generate').onclick=()=>{const s=tidyPhrase($('seed').value);if(!s){$('seed').focus();notify('Enter a seed keyword first.');return}current=build(s,$('market').value);activeFilter='All';document.querySelectorAll('.filter').forEach(b=>b.classList.toggle('active',b.dataset.filter==='All'));render();notify('Generated '+current.length+' unique ideas. Etsy search was not performed.')};
+function loadProjects(){try{const value=JSON.parse(localStorage.getItem(PROJECTS_KEY)||'[]');return Array.isArray(value)?value.filter(x=>x&&typeof x.id==='string'&&typeof x.name==='string'&&typeof x.seed==='string'&&Array.isArray(x.ideas)):[]}catch(e){return []}}
+let projects=loadProjects();
+function persistProjects(){try{localStorage.setItem(PROJECTS_KEY,JSON.stringify(projects));return true}catch(e){notify('Could not save research. Browser storage may be full or unavailable.');return false}}
+function renderProjects(selected=''){$('savedProjects').innerHTML='<option value="">Choose saved set</option>'+projects.map(p=>'<option value="'+p.id.replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'">'+p.name.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+' · '+p.seed.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</option>').join('');$('savedProjects').value=selected}
+$('saveProject').onclick=()=>{if(!current.length){notify('Generate keyword ideas before saving a set.');return}const name=$('projectName').value.trim();if(!name){$('projectName').focus();notify('Give this research set a name first.');return}const id='p-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7);projects.unshift({id,name,seed:tidyPhrase($('seed').value),mode:$('market').value,ideas:current.map(x=>({phrase:x.phrase,type:x.type})),savedAt:new Date().toISOString()});if(projects.length>50)projects=projects.slice(0,50);if(persistProjects()){renderProjects(id);notify('Research set saved on this device.')}};
+$('loadProject').onclick=()=>{const p=projects.find(x=>x.id===$('savedProjects').value);if(!p){notify('Choose a saved research set to load.');return}$('seed').value=p.seed;$('market').value=p.mode;current=p.ideas.filter(x=>x&&typeof x.phrase==='string'&&typeof x.type==='string').map(x=>({phrase:x.phrase,type:x.type}));activeFilter='All';document.querySelectorAll('.filter').forEach(b=>b.classList.toggle('active',b.dataset.filter==='All'));render();notify('Loaded saved research set. Manual checks remain attached to matching phrases.')};
+$('deleteProject').onclick=()=>{const id=$('savedProjects').value;if(!id){notify('Choose a saved research set to delete.');return}const before=projects.length;projects=projects.filter(p=>p.id!==id);if(persistProjects()){renderProjects();notify(before===projects.length?'Saved set was not found.':'Saved research set deleted from this device.')}};
+$('exportBackup').onclick=()=>{const backup={format:'sellerscope-research-backup',version:1,exportedAt:new Date().toISOString(),projects,checks};const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='sellerscope-research-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);notify('Backup exported. Keep the JSON file somewhere safe.')};
+$('importBackupButton').onclick=()=>$('importBackup').click();
+$('importBackup').onchange=async()=>{const file=$('importBackup').files&&$('importBackup').files[0];if(!file)return;try{if(file.size>5*1024*1024)throw new Error('Backup file is too large (5 MB maximum).');const data=JSON.parse(await file.text());if(!data||data.format!=='sellerscope-research-backup'||data.version!==1||!Array.isArray(data.projects)||!data.checks||typeof data.checks!=='object'||Array.isArray(data.checks))throw new Error('This is not a supported SellerScope backup.');const validProjects=data.projects.filter(p=>p&&typeof p.id==='string'&&typeof p.name==='string'&&typeof p.seed==='string'&&['general','gift','personalized','wedding','home'].includes(p.mode)&&Array.isArray(p.ideas)&&p.ideas.length<=500&&p.ideas.every(i=>i&&typeof i.phrase==='string'&&typeof i.type==='string'&&['Short-tail','Mid-tail','Long-tail'].includes(i.type)));const validChecks=Object.entries(data.checks).filter(([k,v])=>typeof k==='string'&&v&&typeof v==='object'&&['searches','listings','source','date'].every(key=>v[key]===undefined||typeof v[key]==='string')).slice(0,5000);const merged=[...validProjects.filter(p=>!projects.some(existing=>existing.id===p.id)),...projects].slice(0,50);const nextChecks={...checks};for(const [k,v] of validChecks)nextChecks[k]=v;const oldProjects=projects,oldChecks=checks;projects=merged;checks=nextChecks;if(!persistProjects()){projects=oldProjects;checks=oldChecks;return}if(!saveChecks()){projects=oldProjects;checks=oldChecks;persistProjects();return}renderProjects();notify('Backup imported: '+validProjects.length+' saved sets and '+validChecks.length+' manual checks reviewed. Existing sets were kept; newest 50 sets are retained.')}catch(e){notify(e.message||'Could not import this backup.')}finally{$('importBackup').value=''}};
+renderProjects();
 $('seed').onkeydown=e=>{if(e.key==='Enter')$('generate').click()};
 document.querySelectorAll('.filter').forEach(b=>b.onclick=()=>{activeFilter=b.dataset.filter;document.querySelectorAll('.filter').forEach(x=>x.classList.toggle('active',x===b));render()});
+function recordCheck(item){const old=checks[item.phrase.toLowerCase()]||{};const searches=prompt('Enter the search count you observed. Leave blank if unavailable.',old.searches||'');if(searches===null)return;const listings=prompt('Enter the listing count you observed. Leave blank if unavailable.',old.listings||'');if(listings===null)return;const source=prompt('Where did you check this phrase? (Example: Etsy Marketplace Insights)',old.source||'Etsy Marketplace Insights');if(source===null)return;if(!source.trim()){notify('A source is required to record a check.');return}const validCount=v=>v.trim()===''||/^\d+(\.\d+)?$/.test(v.trim());if(!validCount(searches)||!validCount(listings)){notify('Counts must be non-negative numbers or left blank.');return}checks[item.phrase.toLowerCase()]={searches:searches.trim(),listings:listings.trim(),source:source.trim(),date:new Date().toISOString().slice(0,10)};saveChecks();render();notify('Manual check recorded. SellerScope has not independently verified the values.')}
 $('copyAll').onclick=()=>current.length?copy(current.map(x=>x.phrase).join('\n')):notify('Generate ideas first.');
-$('export').onclick=()=>{if(!current.length){notify('Generate ideas first.');return}const data=[['keyword_phrase','idea_type','etsy_search_volume','competition','data_status'],...current.map(x=>[x.phrase,x.type,'','','not_connected'])];const csv=data.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\r\n');const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download='sellerscope-keyword-ideas.csv';a.click();URL.revokeObjectURL(url);notify('CSV exported. Metric fields are blank, not estimated.')};
+$('export').onclick=()=>{if(!current.length){notify('Generate ideas first.');return}const data=[['keyword_phrase','idea_type','search_count_manual','listing_count_manual','verification_status','source','checked_date'],...current.map(x=>{const v=checks[x.phrase.toLowerCase()];return [x.phrase,x.type,v?.searches??'',v?.listings??'',v?'manually_recorded':'unverified',v?.source||'',v?.date||'']})];const csv=data.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\r\n');const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download='sellerscope-keyword-ideas.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);notify('CSV exported with manual-check status and source details.')};
 </script></body></html>

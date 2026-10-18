@@ -470,3 +470,18 @@ test('shows shortlist research gaps and exports an actionable listing test plan'
   expect(csv).toContain(phrases[1]);
   fs.unlinkSync(filePath);
 });
+
+test('neutralizes spreadsheet formulas in user-controlled CSV fields', async ({ page }) => {
+  await page.locator('#seed').fill('personalized necklace');
+  await page.locator('#generate').click();
+  await page.locator('#results [data-shortlist]').first().check();
+  await page.locator('#results [data-note]').first().fill('=HYPERLINK("https://example.com","open")');
+  const downloadPromise = page.waitForEvent('download');
+  await page.locator('#exportShortlist').click();
+  const download = await downloadPromise;
+  const filePath = path.join(os.tmpdir(), download.suggestedFilename());
+  await download.saveAs(filePath);
+  const csv = fs.readFileSync(filePath, 'utf8');
+  expect(csv).toContain("\"'=HYPERLINK(\"\"https://example.com\"\",\"\"open\"\")\"");
+  fs.unlinkSync(filePath);
+});

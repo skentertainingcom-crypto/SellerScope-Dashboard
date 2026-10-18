@@ -229,7 +229,7 @@ test('imports a valid backup and rejects an unsupported backup', async ({ page }
   await page.locator('#importBackup').setInputFiles(filePath);
   await expect(page.locator('#toast')).toContainText('Backup imported');
   await expect(page.locator('#savedProjects option')).toHaveCount(2);
-  await page.locator('#savedProjects').selectOption({ label: /Imported mugs/ });
+  await page.locator('#savedProjects').selectOption({ label: 'Imported mugs · ceramic mug' });
   await page.locator('#loadProject').click();
   await expect(page.locator('#seed')).toHaveValue('ceramic mug');
   await expect(page.locator('#market')).toHaveValue('home');

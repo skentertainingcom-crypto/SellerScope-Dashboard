@@ -55,6 +55,23 @@ test('does not create unnatural fragments when a seed contains connector words',
   expect(new Set(phrases.map((phrase) => phrase.toLowerCase())).size).toBe(phrases.length);
 });
 
+
+test('preserves product intent and avoids repeated connector phrases', async ({ page }) => {
+  await page.locator('#seed').fill('engagement ring');
+  await page.locator('#market').selectOption('general');
+  await page.locator('#generate').click();
+  let phrases = await page.locator('#results .kw').allTextContents();
+  expect(phrases).toContain('engagement ring');
+  expect(phrases).toContain('minimalist engagement ring');
+
+  await page.locator('#seed').fill('ring for her');
+  await page.locator('#generate').click();
+  phrases = await page.locator('#results .kw').allTextContents();
+  expect(phrases).not.toContain('ring for her for everyday use');
+  expect(phrases).not.toContain('best ring for her gift');
+  expect(new Set(phrases.map((phrase) => phrase.toLowerCase())).size).toBe(phrases.length);
+});
+
 test('filters ideas by tail length', async ({ page }) => {
   await page.locator('#seed').fill('moissanite engagement ring');
   await page.locator('#generate').click();

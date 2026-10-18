@@ -373,7 +373,8 @@ test('shortlist CSV includes research priority and seller notes', async ({ page 
   await download.saveAs(filePath);
   const csv = fs.readFileSync(filePath, 'utf8');
   expect(csv).toContain('"research_priority_score"');
-  expect(csv).toContain(`"${phrase}","Short-tail","${score}","Test a gift-focused listing"`);
+  expect(csv).toContain('"buyer_intent"');
+  expect(csv).toContain(`"${phrase}","Short-tail","${score}","Personalization","Test a gift-focused listing"`);
   fs.unlinkSync(filePath);
 });
 
@@ -409,4 +410,28 @@ test('adds niche-aware suggestions for craft, bath, art, and digital products', 
       `duplicate phrases for ${seed}`,
     ).toBe(phrases.length);
   }
+});
+
+test('classifies buyer intent, filters by intent, and compares research coverage', async ({ page }) => {
+  await page.locator('#seed').fill('personalized necklace');
+  await page.locator('#generate').click();
+
+  await expect(page.locator('#researchSummary')).toContainText('Visible:');
+  await expect(page.locator('#researchSummary')).toContainText('Manually checked: 0');
+
+  const allIntents = await page.locator('#results .intent').allTextContents();
+  expect(allIntents).toContain('Personalization');
+  expect(allIntents).toContain('Gift-led');
+
+  await page.locator('#intentFilter').selectOption('Gift-led');
+  const visibleIntents = await page.locator('#results .intent').allTextContents();
+  expect(visibleIntents.length).toBeGreaterThan(0);
+  expect(visibleIntents.every((intent) => intent === 'Gift-led')).toBe(true);
+  await expect(page.locator('#researchSummary')).toContainText('Intent: Gift-led');
+
+  await page.locator('#intentFilter').selectOption('Personalization');
+  const personalIntents = await page.locator('#results .intent').allTextContents();
+  expect(personalIntents.length).toBeGreaterThan(0);
+  expect(personalIntents.every((intent) => intent === 'Personalization')).toBe(true);
+  await expect(page.locator('#researchSummary')).toContainText('Intent: Personalization');
 });

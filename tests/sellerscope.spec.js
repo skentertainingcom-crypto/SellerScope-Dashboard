@@ -341,11 +341,11 @@ test('shows transparent research priority and sorts by heuristic score', async (
 
   const scores = await page.locator('#results .priority strong').allTextContents();
   expect(scores.length).toBeGreaterThan(0);
-  expect(scores.every((score) => /^([0-5])\\/5 · (Strong|Review|Explore)$/.test(score))).toBe(true);
+  expect(scores.every((score) => /^([0-5])\/5 · (Strong|Review|Explore)$/.test(score))).toBe(true);
   await expect(page.locator('.hint').filter({ hasText: 'not search volume' })).toBeVisible();
 
   await page.locator('#prioritySort').selectOption('priority');
   const sortedScores = (await page.locator('#results .priority strong').allTextContents())
-    .map((score) => Number(score.match(/^([0-5])\\/)[1]));
+    .map((score) => Number(score.match(/^([0-5])\/)[1]));
   expect(sortedScores).toEqual([...sortedScores].sort((a, b) => b - a));
 });

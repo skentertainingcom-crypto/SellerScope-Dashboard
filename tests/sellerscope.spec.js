@@ -51,6 +51,8 @@ test('does not create unnatural fragments when a seed contains connector words',
   const phrases = await page.locator('#results .kw').allTextContents();
   expect(phrases).not.toContain('ring her');
   expect(phrases).not.toContain('personalized her');
+  expect(phrases).not.toContain('ring for');
+  expect(phrases).not.toContain('for her');
   expect(phrases).toContain('personalized ring');
   expect(new Set(phrases.map((phrase) => phrase.toLowerCase())).size).toBe(phrases.length);
 });

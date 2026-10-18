@@ -528,3 +528,22 @@ test('searches generated phrases and seller notes without changing saved ideas',
   await page.locator('#keywordSearch').fill('');
   await expect(page.locator('#results tr')).toHaveCount(originalCount);
 });
+
+
+test('copies only the currently visible keyword ideas when filters or search are active', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await page.locator('#seed').fill('ceramic vase');
+  await page.locator('#generate').click();
+  await page.locator('#keywordSearch').fill('housewarming');
+  const visible = await page.locator('#results .kw').allTextContents();
+  expect(visible.length).toBeGreaterThan(0);
+  await page.locator('#copyVisible').click();
+  await expect(page.locator('#toast')).toContainText('Copied.');
+  const copied = await page.evaluate(() => navigator.clipboard.readText());
+  expect(copied.split('\\n')).toEqual(visible);
+  expect(copied.split('\\n').length).toBeLessThan(await page.locator('#results .kw').count() + 1);
+
+  await page.locator('#keywordSearch').fill('no-match-at-all');
+  await page.locator('#copyVisible').click();
+  await expect(page.locator('#toast')).toContainText('No visible keyword ideas to copy');
+});

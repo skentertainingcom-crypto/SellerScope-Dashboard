@@ -115,6 +115,10 @@ test('records zero counts and exports the manual verification in CSV', async ({ 
   expect(csv).toContain('"search_count_manual"');
   expect(csv).toContain('"listing_count_manual"');
   expect(csv).toContain('"verification_status"');
+  expect(csv).toContain('"research_priority_score"');
+  const firstPhrase = await page.locator('#results .kw').first().textContent();
+  const firstScore = (await page.locator('#results .priority strong').first().textContent()).split('/')[0];
+  expect(csv).toContain(`"${firstPhrase}","${await page.locator('#results .type').first().textContent()}","${firstScore}"`);
   expect(csv).toContain('"source"');
   expect(csv).toContain('"0","0","manually_recorded","Automated browser test"');
   fs.unlinkSync(filePath);

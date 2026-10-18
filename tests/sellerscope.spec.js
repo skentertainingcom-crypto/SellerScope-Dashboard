@@ -145,6 +145,40 @@ test('generic gift seeds do not produce redundant gift phrases', async ({ page }
   }
 });
 
+test('saves, restores, and deletes a keyword research set', async ({ page }) => {
+  await page.locator('#seed').fill('linen table runner');
+  await page.locator('#market').selectOption('home');
+  await page.locator('#generate').click();
+  const original = await page.locator('#results .kw').allTextContents();
+
+  await page.locator('#projectName').fill('Spring table linens');
+  await page.locator('#saveProject').click();
+  await expect(page.locator('#toast')).toContainText('Research set saved');
+  await expect(page.locator('#savedProjects option')).toHaveCount(2);
+
+  await page.locator('#seed').fill('ceramic vase');
+  await page.locator('#market').selectOption('general');
+  await page.locator('#generate').click();
+  await page.locator('#loadProject').click();
+  await expect(page.locator('#seed')).toHaveValue('linen table runner');
+  await expect(page.locator('#market')).toHaveValue('home');
+  await expect(page.locator('#results .kw')).toHaveText(original);
+
+  await page.locator('#deleteProject').click();
+  await expect(page.locator('#savedProjects option')).toHaveCount(1);
+  await expect(page.locator('#toast')).toContainText('deleted');
+});
+
+test('requires a name and generated ideas before saving research', async ({ page }) => {
+  await page.locator('#saveProject').click();
+  await expect(page.locator('#toast')).toHaveText('Generate keyword ideas before saving a set.');
+  await page.locator('#seed').fill('ceramic vase');
+  await page.locator('#generate').click();
+  await page.locator('#saveProject').click();
+  await expect(page.locator('#toast')).toHaveText('Give this research set a name first.');
+  await expect(page.locator('#savedProjects option')).toHaveCount(1);
+});
+
 test('empty seed shows a helpful message instead of generating rows', async ({ page }) => {
   await page.locator('#generate').click();
   await expect(page.locator('#toast')).toHaveText('Enter a seed keyword first.');

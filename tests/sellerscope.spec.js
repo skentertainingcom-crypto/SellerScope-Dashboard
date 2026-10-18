@@ -41,6 +41,10 @@ test('market modes generate ideas without duplicate phrases', async ({ page }) =
       new Set(phrases.map((phrase) => phrase.toLowerCase())).size,
       `duplicate phrases for ${seed} / ${mode}`,
     ).toBe(phrases.length);
+    if (seed === 'engagement ring' && mode === 'wedding') {
+      expect(phrases).not.toContain('wedding engagement ring');
+      expect(phrases).not.toContain('classic engagement ring engagement gift');
+    }
   }
 });
 

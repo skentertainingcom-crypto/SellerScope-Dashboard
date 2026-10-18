@@ -308,3 +308,26 @@ test('saved research restores shortlist selections and notes', async ({ page }) 
   await expect(page.locator('#results [data-note]').first()).toHaveValue('Test for gift shoppers');
   await expect(page.locator('#shortlistSummary')).toContainText('1 shortlisted');
 });
+
+
+test('shortlist-only filter shows selected phrases and composes with tail filters', async ({ page }) => {
+  await page.locator('#seed').fill('ceramic vase');
+  await page.locator('#generate').click();
+  const phrases = await page.locator('#results .kw').allTextContents();
+  expect(phrases.length).toBeGreaterThan(1);
+
+  await page.locator('#results [data-shortlist="0"]').check();
+  const selectedPhrase = phrases[0];
+  await page.locator('#shortlistOnly').click();
+  await expect(page.locator('#shortlistOnly')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('#results .kw')).toHaveText([selectedPhrase]);
+
+  await page.locator('.filter[data-filter="Long-tail"]').click();
+  const visibleTypes = await page.locator('#results .type').allTextContents();
+  expect(visibleTypes.every((type) => type === 'Long-tail')).toBe(true);
+  await expect(page.locator('#results .kw')).toHaveCount(0);
+
+  await page.locator('#shortlistOnly').click();
+  await expect(page.locator('#shortlistOnly')).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.locator('#results .kw')).toHaveCount(0);
+});

@@ -93,10 +93,26 @@ function build(seed,mode){
   {words:['planner','journal','notebook','bookmark','invitation','stationery','sticker','notepad'],phrases:[product+' gift for students','personalized '+product+' cover']},
   {words:['shirt','hoodie','sweatshirt','tote','apron','dress','hat','cap'],phrases:[product+' custom design',product+' gift idea']},
   {words:['dog','cat','pet','collar','leash'],phrases:[product+' accessory',product+' gift for pet lovers']},
-  {words:['digital','printable','svg','template'],phrases:[product+' download',product+' template']}
+  {words:['digital','printable','svg','template','download'],phrases:[product+' download',product+' template']},
+  // More Etsy niches: don't force every product into the same generic gift terms.
+  {words:['crochet','knitting','knit','embroidery','sewing','quilt','yarn'],phrases:[
+   ...(words.some(w=>['pattern','patterns'].includes(w))?[]:[product+' pattern']),
+   ...(words.some(w=>['beginner','beginners'].includes(w))?[]:[product+' for beginners'])
+  ]},
+  {words:['soap','skincare','lotion','balm','bath','bathbomb','bath-bomb'],phrases:[
+   ...(words.some(w=>['set','bundle','gift'].includes(w))?[]:[product+' gift set']),
+   ...(words.some(w=>['handmade','natural','organic'].includes(w))?[]:['handmade '+product)
+  ]},
+  {words:['print','poster','illustration','painting','artwork','wallart'],phrases:[
+   ...(words.some(w=>['gallery','gallerywall'].includes(w))?[]:[product+' gallery wall']),
+   ...(words.some(w=>['digital','printable','download'].includes(w))?[]:[product+' printable download'])
+  ]}
  ];
- const matched=categoryRules.find(rule=>rule.words.some(word=>words.includes(word)));
- if(matched)for(const phrase of matched.phrases)addUnique(arr,phrase);
+ // A seed can belong to more than one useful niche (e.g. a digital planner).
+ // Collect all matching patterns and let addUnique remove exact duplicates.
+ for(const rule of categoryRules.filter(rule=>rule.words.some(word=>words.includes(word)))){
+  for(const phrase of rule.phrases)addUnique(arr,phrase);
+ }
  return arr;
 }
 function notify(t){$('toast').textContent=t;$('toast').classList.add('show')}

@@ -353,3 +353,23 @@ test('shows transparent research priority and sorts by heuristic score', async (
     .map((score) => Number(score.split('/')[0]));
   expect(sortedScores).toEqual([...sortedScores].sort((a, b) => b - a));
 });
+
+
+test('shortlist CSV includes research priority and seller notes', async ({ page }) => {
+  await page.locator('#seed').fill('personalized necklace');
+  await page.locator('#generate').click();
+  const phrase = await page.locator('#results .kw').first().textContent();
+  const score = (await page.locator('#results .priority strong').first().textContent()).split('/')[0];
+  await page.locator('#results [data-shortlist]').first().check();
+  await page.locator('#results [data-note]').first().fill('Test a gift-focused listing');
+  const downloadPromise = page.waitForEvent('download');
+  await page.locator('#exportShortlist').click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toBe('sellerscope-keyword-shortlist.csv');
+  const filePath = path.join(os.tmpdir(), download.suggestedFilename());
+  await download.saveAs(filePath);
+  const csv = fs.readFileSync(filePath, 'utf8');
+  expect(csv).toContain('"research_priority_score"');
+  expect(csv).toContain(`"${phrase}","Short-tail","${score}","Test a gift-focused listing"`);
+  fs.unlinkSync(filePath);
+});

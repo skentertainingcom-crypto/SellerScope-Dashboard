@@ -46,14 +46,8 @@ function addUnique(arr, phrase, preserveSeed=false){phrase=tidyPhrase(phrase).re
 function build(seed,mode){
  const s=tidyPhrase(seed), words=s.split(' '), arr=[];
  addUnique(arr,s,true);
- // Add adjacent two-word phrases, but avoid returning generic one-word fragments as keyword ideas.
- if(words.length>1){
-  for(let i=0;i<words.length-1;i++)addUnique(arr,words.slice(i,i+2).join(' '));
-  if(words.length>2){
-   // Do not create fragments by stripping connectors from a phrase (e.g. "ring for her" -> "ring her").
-   // Adjacent phrases above preserve the original word order and are safer suggestions.
-  }
- }
+ // Keep the seller's complete seed intact. Arbitrary adjacent-word fragments often
+ // lose product intent (e.g. "moissanite engagement") and inflate the idea count.
  const generic=['for','with','and','the','a','an','of','to','her','him','them','their','his','hers','your','you','me','my','our','gift','gifts','birthday','anniversary','personalized','personalised','custom','engraved','modern','minimalist','boho','vintage','handmade','unique','best','housewarming'];
  const core=words.filter(w=>!generic.includes(w)).join(' ');
  const product=core||s;

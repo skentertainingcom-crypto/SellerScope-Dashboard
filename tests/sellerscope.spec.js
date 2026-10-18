@@ -300,7 +300,7 @@ test('saved research restores shortlist selections and notes', async ({ page }) 
   await page.locator('#saveProject').click();
   await page.locator('#seed').fill('linen table runner');
   await page.locator('#generate').click();
-  await page.locator('#savedProjects').selectOption({ label: /Vase shortlist/ });
+  await page.locator('#savedProjects').selectOption({ label: 'Vase shortlist · ceramic vase' });
   await page.locator('#loadProject').click();
 
   await expect(page.locator('#results .kw').first()).toHaveText(phrase);

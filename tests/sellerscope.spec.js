@@ -120,6 +120,19 @@ test('records zero counts and exports the manual verification in CSV', async ({ 
   fs.unlinkSync(filePath);
 });
 
+test('wedding mode adapts phrases to wedding-specific product seeds', async ({ page }) => {
+  await page.locator('#seed').fill('wedding guest book');
+  await page.locator('#market').selectOption('wedding');
+  await page.locator('#generate').click();
+
+  const phrases = await page.locator('#results .kw').allTextContents();
+  expect(phrases).toContain('wedding guest book');
+  expect(phrases).toContain('guest book for bride and groom');
+  expect(phrases).toContain('personalized guest book gift');
+  expect(phrases).not.toContain('wedding guest book for bride');
+  expect(new Set(phrases.map((phrase) => phrase.toLowerCase())).size).toBe(phrases.length);
+});
+
 test('generic gift seeds do not produce redundant gift phrases', async ({ page }) => {
   for (const seed of ['gift', 'birthday gift', 'custom gift']) {
     await page.locator('#seed').fill(seed);

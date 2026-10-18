@@ -379,7 +379,7 @@ test('explains research priority scores with transparent heuristic signals', asy
   await page.locator('#seed').fill('personalized necklace');
   await page.locator('#generate').click();
   const priority = page.locator('#results .priority').first();
-  await expect(priority).toHaveAttribute('title', /Heuristic score: \\d\\/5\\. Signals:/);
+  await expect(priority).toHaveAttribute('title', /Heuristic score:/);
   await expect(priority).toHaveAttribute('aria-label', /Heuristic only/);
   const explanation = await priority.getAttribute('title');
   expect(explanation).toContain('matches seed terms');

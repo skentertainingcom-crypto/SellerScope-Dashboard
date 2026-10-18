@@ -201,6 +201,8 @@ test('exports a JSON backup containing saved research and manual checks', async 
   const answers = ['12', '240', 'Etsy Marketplace Insights'];
   page.on('dialog', async (dialog) => dialog.accept(answers.shift() ?? ''));
   await page.locator('#results [data-check]').first().click();
+  await page.locator('#results [data-shortlist]').first().check();
+  await page.locator('#results [data-note]').first().fill('Gift-ready product angle');
 
   const downloadPromise = page.waitForEvent('download');
   await page.locator('#exportBackup').click();
@@ -213,9 +215,9 @@ test('exports a JSON backup containing saved research and manual checks', async 
   expect(backup.version).toBe(1);
   expect(backup.projects[0].name).toBe('Ceramic launch');
   expect(Object.values(backup.checks)[0].source).toBe('Etsy Marketplace Insights');
+  expect(Object.values(backup.shortlist)[0]).toEqual({ selected: true, note: 'Gift-ready product angle' });
   fs.unlinkSync(filePath);
 });
-
 test('imports a valid backup and rejects an unsupported backup', async ({ page }) => {
   const filePath = path.join(os.tmpdir(), 'sellerscope-test-backup.json');
   const backup = {
@@ -230,7 +232,8 @@ test('imports a valid backup and rejects an unsupported backup', async ({ page }
       ideas: [{ phrase: 'ceramic mug', type: 'Short-tail' }],
       savedAt: '2026-10-18T00:00:00.000Z'
     }],
-    checks: { 'ceramic mug': { searches: '0', listings: '18', source: 'Manual test', date: '2026-10-18' } }
+    checks: { 'ceramic mug': { searches: '0', listings: '18', source: 'Manual test', date: '2026-10-18' } },
+    shortlist: { 'ceramic mug': { selected: true, note: 'Gift-ready product angle' } }
   };
   fs.writeFileSync(filePath, JSON.stringify(backup));
   await page.locator('#importBackup').setInputFiles(filePath);
@@ -241,6 +244,8 @@ test('imports a valid backup and rejects an unsupported backup', async ({ page }
   await expect(page.locator('#seed')).toHaveValue('ceramic mug');
   await expect(page.locator('#market')).toHaveValue('home');
   await expect(page.locator('#results .searches').first()).toHaveText('0');
+  await expect(page.locator('#results [data-shortlist]').first()).toBeChecked();
+  await expect(page.locator('#results [data-note]').first()).toHaveValue('Gift-ready product angle');
 
   fs.writeFileSync(filePath, JSON.stringify({ format: 'wrong-format', version: 99, projects: [], checks: {} }));
   await page.locator('#importBackup').setInputFiles(filePath);

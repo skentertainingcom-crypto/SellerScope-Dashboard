@@ -54,11 +54,14 @@ function build(seed,mode){
    // Adjacent phrases above preserve the original word order and are safer suggestions.
   }
  }
- const generic=['for','with','and','the','a','an','of','to','her','him','them','their','his','hers','your','you','me','my','our','gift','gifts','birthday','anniversary','personalized','personalised','custom','engraved','wedding','engagement','bridal','bride','groom','modern','minimalist','boho','vintage','handmade','unique','best','decor','decoration','housewarming'];
+ const generic=['for','with','and','the','a','an','of','to','her','him','them','their','his','hers','your','you','me','my','our','gift','gifts','birthday','anniversary','personalized','personalised','custom','engraved','modern','minimalist','boho','vintage','handmade','unique','best','housewarming'];
  const core=words.filter(w=>!generic.includes(w)).join(' ');
+ const product=core||s;
  const has=word=>words.includes(word);
  const variants={
-  general:[has('minimalist')?s:'minimalist '+s,has('vintage')?s:'vintage '+s,has('handmade')?s:'handmade '+s,has('gift')?'best '+s:'best '+s+' gift',s+' for everyday use',has('unique')?s:'unique '+s,has('order')?s:s+' made to order'],
+  // Build modifiers around the product phrase, not the full seed, to avoid
+  // duplicated connectors and phrases like "ring for her for everyday use".
+  general:[has('minimalist')?s:'minimalist '+product,has('vintage')?s:'vintage '+product,has('handmade')?s:'handmade '+product,product+' gift',has('unique')?s:'unique '+product,has('order')?s:product+' made to order'],
   gift:core?[core+' gift',core+' gift for her',core+' birthday gift',core+' anniversary gift','unique '+core+' gift']:['gift for her','birthday gift for her','anniversary gift','unique gift for her','thoughtful gift for her'],
   personalized:core?['personalized '+core,'custom '+core,'engraved '+core,'personalized '+core+' gift','custom '+core+' made to order']:['personalized gift','custom gift','engraved gift','personalized keepsake','custom made to order'],
   wedding:core?['bridal '+core,'wedding '+core,core+' for bride to be','classic '+core+' engagement gift','modern '+core+' wedding style']:['bridal gift','wedding gift','engagement gift','gift for bride to be','modern wedding gift'],

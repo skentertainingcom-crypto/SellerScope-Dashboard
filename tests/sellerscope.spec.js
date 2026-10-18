@@ -261,3 +261,50 @@ test('adds relevant variants for common Etsy product categories', async ({ page 
     expect(new Set(phrases.map((phrase) => phrase.toLowerCase())).size).toBe(phrases.length);
   }
 });
+
+
+test('shortlists keyword ideas, saves seller notes, and exports only selected phrases', async ({ page }) => {
+  await page.locator('#seed').fill('ceramic vase');
+  await page.locator('#market').selectOption('home');
+  await page.locator('#generate').click();
+
+  const firstPhrase = await page.locator('#results .kw').first().textContent();
+  await page.locator('#results [data-shortlist]').first().check();
+  await page.locator('#results [data-note]').first().fill('Strong fit for the autumn home collection');
+  await page.locator('#results [data-note]').first().press('Tab');
+  await expect(page.locator('#shortlistSummary')).toContainText('1 shortlisted');
+
+  const downloadPromise = page.waitForEvent('download');
+  await page.locator('#exportShortlist').click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toBe('sellerscope-keyword-shortlist.csv');
+  const filePath = path.join(os.tmpdir(), download.suggestedFilename());
+  await download.saveAs(filePath);
+  const csv = fs.readFileSync(filePath, 'utf8');
+  expect(csv).toContain('"seller_note"');
+  expect(csv).toContain('Strong fit for the autumn home collection');
+  expect(csv).toContain(firstPhrase);
+  expect(csv).not.toContain('minimalist ceramic vase');
+  fs.unlinkSync(filePath);
+});
+
+test('saved research restores shortlist selections and notes', async ({ page }) => {
+  await page.locator('#seed').fill('ceramic vase');
+  await page.locator('#generate').click();
+  await page.locator('#results [data-shortlist]').first().check();
+  await page.locator('#results [data-note]').first().fill('Test for gift shoppers');
+  await page.locator('#results [data-note]').first().press('Tab');
+  const phrase = await page.locator('#results .kw').first().textContent();
+
+  await page.locator('#projectName').fill('Vase shortlist');
+  await page.locator('#saveProject').click();
+  await page.locator('#seed').fill('linen table runner');
+  await page.locator('#generate').click();
+  await page.locator('#savedProjects').selectOption({ label: /Vase shortlist/ });
+  await page.locator('#loadProject').click();
+
+  await expect(page.locator('#results .kw').first()).toHaveText(phrase);
+  await expect(page.locator('#results [data-shortlist]').first()).toBeChecked();
+  await expect(page.locator('#results [data-note]').first()).toHaveValue('Test for gift shoppers');
+  await expect(page.locator('#shortlistSummary')).toContainText('1 shortlisted');
+});

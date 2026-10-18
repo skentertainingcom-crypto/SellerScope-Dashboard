@@ -499,6 +499,6 @@ test('neutralizes formula-like seller notes in listing test plan exports', async
   const filePath = path.join(os.tmpdir(), download.suggestedFilename());
   await download.saveAs(filePath);
   const csv = fs.readFileSync(filePath, 'utf8');
-  expect(csv).toContain('"\'  =HYPERLINK(""https://example.com"",""open"")"');
+  expect(csv).toContain('"\'=HYPERLINK(""https://example.com"",""open"")"');
   fs.unlinkSync(filePath);
 });

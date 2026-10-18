@@ -39,7 +39,7 @@ button{border:0;border-radius:10px;padding:12px 16px;font-weight:750;background:
 let current=[],activeFilter='All';const $=id=>document.getElementById(id);
 function normalize(s){return String(s||'').toLowerCase().replace(/[’']/g,"'").replace(/[^a-z0-9+#.-]+/g,' ').trim().replace(/\s+/g,' ')}
 function tidyPhrase(s){return normalize(s).split(' ').filter(Boolean).join(' ')}
-function addUnique(arr, phrase){phrase=tidyPhrase(phrase);if(!phrase)return;const key=phrase.toLowerCase();if(!arr.some(x=>x.phrase.toLowerCase()===key)){const n=phrase.split(' ').length;const type=n<=2?'Short-tail':n<=4?'Mid-tail':'Long-tail';arr.push({phrase,type})}}
+function addUnique(arr, phrase){phrase=tidyPhrase(phrase).replace(/\b([a-z0-9+#.-]+)(\s+\1\b)+/gi,'$1');if(!phrase)return;const key=phrase.toLowerCase();if(!arr.some(x=>x.phrase.toLowerCase()===key)){const n=phrase.split(' ').length;const type=n<=2?'Short-tail':n<=4?'Mid-tail':'Long-tail';arr.push({phrase,type})}}
 function build(seed,mode){
  const s=tidyPhrase(seed), words=s.split(' '), arr=[];
  addUnique(arr,s);

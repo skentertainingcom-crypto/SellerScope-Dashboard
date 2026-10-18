@@ -435,3 +435,38 @@ test('classifies buyer intent, filters by intent, and compares research coverage
   expect(personalIntents.every((intent) => intent === 'Personalization')).toBe(true);
   await expect(page.locator('#researchSummary')).toContainText('Intent: Personalization');
 });
+
+
+test('shows shortlist research gaps and exports an actionable listing test plan', async ({ page }) => {
+  await page.locator('#seed').fill('personalized necklace');
+  await page.locator('#generate').click();
+  const phrases = await page.locator('#results .kw').allTextContents();
+  expect(phrases.length).toBeGreaterThan(1);
+
+  await page.locator('#results [data-shortlist="0"]').check();
+  await page.locator('#results [data-shortlist="1"]').check();
+  await expect(page.locator('#researchGaps')).toContainText('2 shortlisted phrases without a recorded source/date');
+  await expect(page.locator('#researchGaps')).toContainText('2 missing manual search or listing counts');
+
+  const answers = ['10', '', 'Automated browser test'];
+  page.on('dialog', async (dialog) => dialog.accept(answers.shift() ?? ''));
+  await page.locator('#results [data-check]').first().click();
+  await expect(page.locator('#researchGaps')).toContainText('1 shortlisted phrase(s) without a recorded source/date');
+  await expect(page.locator('#researchGaps')).toContainText('2 missing manual search or listing counts');
+
+  const downloadPromise = page.waitForEvent('download');
+  await page.locator('#exportTestPlan').click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toBe('sellerscope-listing-test-plan.csv');
+  const filePath = path.join(os.tmpdir(), download.suggestedFilename());
+  await download.saveAs(filePath);
+  const csv = fs.readFileSync(filePath, 'utf8');
+  expect(csv).toContain('"recommended_next_step"');
+  expect(csv).toContain('"research_priority_score_heuristic"');
+  expect(csv).toContain('"Check this phrase in a permitted source and record source/date"');
+  expect(csv).toContain('"Fill in the missing manually observed search or listing count"');
+  expect(csv).toContain('not Etsy search volume, competition, or a sales forecast');
+  expect(csv).toContain(phrases[0]);
+  expect(csv).toContain(phrases[1]);
+  fs.unlinkSync(filePath);
+});

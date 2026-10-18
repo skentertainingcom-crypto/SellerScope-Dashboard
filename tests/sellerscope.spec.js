@@ -120,6 +120,18 @@ test('records zero counts and exports the manual verification in CSV', async ({ 
   fs.unlinkSync(filePath);
 });
 
+test('generic gift seeds do not produce redundant gift phrases', async ({ page }) => {
+  for (const seed of ['gift', 'birthday gift', 'custom gift']) {
+    await page.locator('#seed').fill(seed);
+    await page.locator('#market').selectOption('general');
+    await page.locator('#generate').click();
+    const phrases = await page.locator('#results .kw').allTextContents();
+    expect(phrases, seed).not.toContain('gift gift');
+    expect(phrases, seed).not.toContain('birthday gift gift');
+    expect(new Set(phrases.map((phrase) => phrase.toLowerCase())).size).toBe(phrases.length);
+  }
+});
+
 test('empty seed shows a helpful message instead of generating rows', async ({ page }) => {
   await page.locator('#generate').click();
   await expect(page.locator('#toast')).toHaveText('Enter a seed keyword first.');

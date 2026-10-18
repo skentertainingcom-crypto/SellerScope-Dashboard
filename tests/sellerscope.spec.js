@@ -445,7 +445,7 @@ test('shows shortlist research gaps and exports an actionable listing test plan'
 
   await page.locator('#results [data-shortlist="0"]').check();
   await page.locator('#results [data-shortlist="1"]').check();
-  await expect(page.locator('#researchGaps')).toContainText('2 shortlisted phrases without a recorded source/date');
+  await expect(page.locator('#researchGaps')).toContainText('2 shortlisted phrase(s) without a recorded source/date');
   await expect(page.locator('#researchGaps')).toContainText('2 shortlisted phrases missing manual search or listing counts');
 
   const answers = ['10', '', 'Automated browser test'];

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SellerScope — Keyword Research</title>
+<title>EtsyScope — Keyword Research</title>
 <style>
 :root{--ink:#22243a;--muted:#73778a;--line:#e6e7ef;--bg:#f7f8fc;--purple:#6757d9;--pale:#efedff}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
@@ -22,7 +22,7 @@ button{border:0;border-radius:10px;padding:12px 16px;font-weight:750;background:
 @media(max-width:800px){.saved-controls{grid-template-columns:1fr 1fr}}@media(max-width:650px){.top{align-items:flex-start;flex-direction:column}.controls,.saved-controls{grid-template-columns:1fr}.card{padding:15px}.controls button,.saved-controls button{min-height:44px}.tablewrap{overflow:visible}table{display:block;min-width:0;width:100%}thead{display:none}tbody{display:grid;gap:12px}tbody tr{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}tbody td{display:flex;flex-direction:column;align-items:flex-start;gap:6px;min-width:0;padding:11px;border-bottom:1px solid #f0f0f5;overflow-wrap:anywhere}tbody td:before{content:attr(data-label);font-size:10px;font-weight:750;letter-spacing:.5px;text-transform:uppercase;color:var(--muted)}tbody td:first-child,tbody td:nth-child(8){grid-column:1/-1}tbody td:first-child .kw{font-size:15px}tbody td input[type=checkbox]{width:20px;height:20px}tbody td input[data-note]{width:100%!important;min-height:40px}tbody td button{min-height:40px}tbody td.empty{display:block;grid-column:1/-1}tbody td.empty:before{content:none}}
 </style></head>
 <body><main class="wrap">
-<header class="top"><div class="brand">Seller<span>Scope</span></div><div class="status">● Etsy API review pending</div></header>
+<header class="top"><div class="brand">Etsy<span>Scope</span></div><div class="status">● Etsy API review pending</div></header>
 <h1>Keyword research</h1><p class="lead">Explore short-tail, mid-tail, and long-tail keyword ideas. Copy suggestions or export a CSV. Search volume is never guessed or fabricated.</p>
 <section class="card">
 <label class="label" for="seed">Seed keyword or product phrase</label>
@@ -34,8 +34,8 @@ button{border:0;border-radius:10px;padding:12px 16px;font-weight:750;background:
 <div class="filters"><label class="label" for="prioritySort" style="margin:0;align-self:center">Order</label><select id="prioritySort" aria-label="Keyword order" style="border:1px solid #dfe0eb;border-radius:9px;padding:8px;background:white;color:var(--ink)"><option value="generated">Generated order</option><option value="priority">Highest priority first</option></select><button class="filter active" data-filter="All">All</button><button class="filter" data-filter="Short-tail">Short-tail</button><button class="filter" data-filter="Mid-tail">Mid-tail</button><button class="filter" data-filter="Long-tail">Long-tail</button><button class="filter shortlist-toggle" id="shortlistOnly" type="button" aria-pressed="false">Shortlist only</button></div>
 <div class="tablewrap"><table><thead><tr><th>Keyword phrase</th><th>Idea type</th><th>Research priority</th><th>Searches (manual)</th><th>Listings (manual)</th><th>Verification</th><th>Shortlist</th><th>Seller note</th><th>Action</th></tr></thead><tbody id="results"><tr><td class="empty" colspan="6">Enter a phrase and select “Generate ideas”.</td></tr></tbody></table></div>
 <div id="toast" class="toast" role="status"></div>
-<div class="notice"><strong>For real Etsy search data:</strong> Use Etsy Marketplace Insights if available to your shop. “Record check” saves values you observed, the source, and date on this device. SellerScope does not fetch or validate values automatically.</div>
-</section><p class="foot">SellerScope is an independent project and is not affiliated with Etsy. Metrics are intentionally blank until a reliable, permitted data source is connected. This prototype has no backend, login, or live Etsy connection.</p></main>
+<div class="notice"><strong>For real Etsy search data:</strong> Use Etsy Marketplace Insights if available to your shop. “Record check” saves values you observed, the source, and date on this device. EtsyScope does not fetch or validate values automatically.</div>
+</section><p class="foot">EtsyScope is an independent project and is not affiliated with Etsy. Metrics are intentionally blank until a reliable, permitted data source is connected. This prototype has no backend, login, or live Etsy connection.</p></main>
 <script>
 let current=[],activeFilter='All',shortlistOnly=false;const $=id=>document.getElementById(id);const STORE_KEY='sellerscope.keywordChecks.v1';const PROJECTS_KEY='sellerscope.savedResearch.v1';const SHORTLIST_KEY='sellerscope.shortlist.v1';
 function loadChecks(){try{return JSON.parse(localStorage.getItem(STORE_KEY)||'{}')}catch(e){return {}}}

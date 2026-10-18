@@ -1,0 +1,8 @@
+{
+  "name": "sellerscope-dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Browser tests for the SellerScope keyword research prototype",
+  "scripts": { "test:e2e": "playwright test" },
+  "devDependencies": { "@playwright/test": "1.58.2" }
+}

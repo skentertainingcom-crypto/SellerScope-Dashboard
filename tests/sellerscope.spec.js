@@ -10,6 +10,9 @@ test.beforeEach(async ({ page }) => {
 });
 
 test('generates unique ideas and updates the count', async ({ page }) => {
+  await expect(page).toHaveTitle('EtsyScope — Keyword Research');
+  await expect(page.locator('.brand')).toHaveText('EtsyScope');
+  await expect(page.locator('.foot')).toContainText('EtsyScope is an independent project');
   await page.locator('#seed').fill('moissanite engagement ring');
   await page.locator('#generate').click();
 

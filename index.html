@@ -46,24 +46,23 @@ function addUnique(arr, phrase){phrase=tidyPhrase(phrase).replace(/\b([a-z0-9+#.
 function build(seed,mode){
  const s=tidyPhrase(seed), words=s.split(' '), arr=[];
  addUnique(arr,s);
- // Short-tail terms: keep meaningful one-word terms and adjacent two-word phrases.
- if(words.length===1)addUnique(arr,s);
- else {for(let i=0;i<words.length;i++) if(words[i].length>1)addUnique(arr,words[i]);
+ // Add adjacent two-word phrases, but avoid returning generic one-word fragments as keyword ideas.
+ if(words.length>1){
   for(let i=0;i<words.length-1;i++)addUnique(arr,words.slice(i,i+2).join(' '));
   if(words.length>2){
    const meaningful=words.filter(w=>!['for','with','and','the','a','an','of','to'].includes(w));
    if(meaningful.length>=2)addUnique(arr,meaningful.slice(0,2).join(' '));
   }
  }
- // Build phrases without blindly appending a word already at the end of the seed.
+ const generic=['for','with','and','the','a','an','of','to','gift','birthday','anniversary','personalized','custom','engraved','wedding','engagement','bridal','bride','modern','minimalist','boho','vintage','handmade','unique','best','decor','housewarming'];
+ const core=words.filter(w=>!generic.includes(w)).join(' ')||s;
  const has=word=>words.includes(word);
- const prefix=word=>has(word)?s:word+' '+s;
  const variants={
- general:[prefix('minimalist'),prefix('vintage'),prefix('handmade'),has('gift')?'best '+s:'best '+s+' gift',has('wear')?s:s+' for everyday wear',prefix('unique'),has('order')?s:s+' made to order'],
- gift:[has('gift')?s:s+' gift','gift for her '+s,has('birthday')?s:s+' birthday gift for her',has('anniversary')?s:s+' anniversary gift',has('gift')?'unique '+s:'unique '+s+' gift for her'],
- personalized:[prefix('personalized'),prefix('custom'),prefix('engraved'),has('gift')?'personalized '+s:'personalized '+s+' gift',has('order')?'custom '+s:'custom '+s+' made to order'],
- wedding:[prefix('bridal'),prefix('wedding'),has('bride')?s:s+' for bride to be',has('engagement')?'classic '+s:'classic '+s+' engagement gift',has('wedding')?'modern '+s:'modern '+s+' wedding style'],
- home:[prefix('modern'),prefix('minimalist'),prefix('boho'),has('decor')?s:s+' for living room decor',has('housewarming')?s:s+' housewarming gift']
+  general:[has('minimalist')?s:'minimalist '+s,has('vintage')?s:'vintage '+s,has('handmade')?s:'handmade '+s,has('gift')?'best '+s:'best '+s+' gift',s+' for everyday use',has('unique')?s:'unique '+s,has('order')?s:s+' made to order'],
+  gift:[core+' gift','gift for her '+core,core+' birthday gift for her',core+' anniversary gift','unique '+core+' gift for her],
+  personalized:['personalized '+core,'custom '+core,'engraved '+core,'personalized '+core+' gift','custom '+core+' made to order'],
+  wedding:['bridal '+core,'wedding '+core,core+' for bride to be','classic '+core+' engagement gift','modern '+core+' wedding style'],
+  home:['modern '+core,'minimalist '+core,'boho '+core,core+' for living room decor',core+' housewarming gift']
  };
  for(const phrase of (variants[mode]||variants.general))addUnique(arr,phrase);
  return arr;

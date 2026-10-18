@@ -346,6 +346,6 @@ test('shows transparent research priority and sorts by heuristic score', async (
 
   await page.locator('#prioritySort').selectOption('priority');
   const sortedScores = (await page.locator('#results .priority strong').allTextContents())
-    .map((score) => Number(score.match(/^([0-5])\/)[1]));
+    .map((score) => Number(score.split('/')[0]));
   expect(sortedScores).toEqual([...sortedScores].sort((a, b) => b - a));
 });

@@ -79,6 +79,19 @@ function build(seed,mode){
   home:core?['modern '+core,'minimalist '+core,'boho '+core,core+' for living room decor',core+' housewarming gift']:['modern home decor','minimalist home decor','boho home decor','living room decor','housewarming gift']
  };
  for(const phrase of (variants[mode]||variants.general))addUnique(arr,phrase);
+
+ // Add a few product-aware variants so ideas reflect how shoppers describe
+ // common Etsy categories, rather than relying only on generic adjectives.
+ const categoryRules=[
+  {words:['ring','necklace','earring','earrings','bracelet','pendant','jewelry','jewellery','anklet','brooch'],phrases:['personalized '+product,'gift for her '+product]},
+  {words:['vase','candle','pillow','throw','blanket','tray','wall','decor','mug','planter','coaster'],phrases:[product+' shelf decor',product+' housewarming gift']},
+  {words:['planner','journal','notebook','bookmark','invitation','stationery','sticker','notepad'],phrases:[product+' for everyday planning',product+' personalized cover']},
+  {words:['shirt','hoodie','sweatshirt','tote','apron','dress','hat','cap'],phrases:[product+' custom design',product+' gift idea']},
+  {words:['dog','cat','pet','collar','leash'],phrases:[product+' pet accessory',product+' gift for pet lovers']},
+  {words:['digital','printable','svg','template'],phrases:[product+' digital download',product+' printable template']}
+ ];
+ const matched=categoryRules.find(rule=>rule.words.some(word=>words.includes(word)));
+ if(matched)for(const phrase of matched.phrases)addUnique(arr,phrase);
  return arr;
 }
 function notify(t){$('toast').textContent=t;$('toast').classList.add('show')}

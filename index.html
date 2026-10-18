@@ -55,7 +55,14 @@ function build(seed,mode){
  const variants={
   // Build modifiers around the product phrase, not the full seed, to avoid
   // duplicated connectors and phrases like "ring for her for everyday use".
-  general:[has('minimalist')?s:'minimalist '+product,has('vintage')?s:'vintage '+product,has('handmade')?s:'handmade '+product,product+' gift',has('unique')?s:'unique '+product,has('order')?s:product+' made to order'],
+  general:core?[
+   has('minimalist')?s:'minimalist '+product,
+   has('vintage')?s:'vintage '+product,
+   has('handmade')?s:'handmade '+product,
+   has('gift')?s:product+' gift',
+   has('unique')?s:'unique '+product,
+   has('order')?s:product+' made to order'
+  ]:[s,'thoughtful '+s,'personalized '+s,'handmade '+s,'unique '+s],
   gift:core?[core+' gift',core+' gift for her',core+' birthday gift',core+' anniversary gift','unique '+core+' gift']:['gift for her','birthday gift for her','anniversary gift','unique gift for her','thoughtful gift for her'],
   personalized:core?['personalized '+core,'custom '+core,'engraved '+core,'personalized '+core+' gift','custom '+core+' made to order']:['personalized gift','custom gift','engraved gift','personalized keepsake','custom made to order'],
   wedding:core?[

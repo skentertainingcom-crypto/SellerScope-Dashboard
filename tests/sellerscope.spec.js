@@ -241,3 +241,23 @@ test('imports a valid backup and rejects an unsupported backup', async ({ page }
   await expect(page.locator('#savedProjects option')).toHaveCount(2);
   fs.unlinkSync(filePath);
 });
+
+test('adds relevant variants for common Etsy product categories', async ({ page }) => {
+  const cases = [
+    ['personalized necklace', 'personalized', ['personalized necklace', 'necklace gift for her']],
+    ['daily planner', 'general', ['daily planner gift for students', 'personalized daily planner cover']],
+    ['dog collar', 'general', ['dog collar accessory', 'dog collar gift for pet lovers']],
+    ['ceramic vase', 'home', ['ceramic vase shelf styling', 'ceramic vase housewarming gift']],
+  ];
+
+  for (const [seed, mode, expected] of cases) {
+    await page.locator('#seed').fill(seed);
+    await page.locator('#market').selectOption(mode);
+    await page.locator('#generate').click();
+    const phrases = await page.locator('#results .kw').allTextContents();
+    for (const phrase of expected) {
+      expect(phrases, `missing "${phrase}" for seed "${seed}"`).toContain(phrase);
+    }
+    expect(new Set(phrases.map((phrase) => phrase.toLowerCase())).size).toBe(phrases.length);
+  }
+});

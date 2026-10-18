@@ -42,6 +42,19 @@ test('market modes generate ideas without duplicate phrases', async ({ page }) =
   }
 });
 
+
+test('does not create unnatural fragments when a seed contains connector words', async ({ page }) => {
+  await page.locator('#seed').fill('ring for her');
+  await page.locator('#market').selectOption('personalized');
+  await page.locator('#generate').click();
+
+  const phrases = await page.locator('#results .kw').allTextContents();
+  expect(phrases).not.toContain('ring her');
+  expect(phrases).not.toContain('personalized her');
+  expect(phrases).toContain('personalized ring');
+  expect(new Set(phrases.map((phrase) => phrase.toLowerCase())).size).toBe(phrases.length);
+});
+
 test('filters ideas by tail length', async ({ page }) => {
   await page.locator('#seed').fill('moissanite engagement ring');
   await page.locator('#generate').click();

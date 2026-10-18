@@ -120,8 +120,8 @@ async function copy(t){try{await navigator.clipboard.writeText(t);notify('Copied
 function classifyIntent(item){
  const phrase=normalize(typeof item==='string'?item:item.phrase);
  if(/\b(personalized|personalised|custom|engraved|monogram|made to order)\b/.test(phrase))return 'Personalization';
- if(/\b(gift|gifts|present|for her|for him|for mom|for dad|for teacher|for students|pet lovers)\b/.test(phrase))return 'Gift-led';
  if(/\b(wedding|bridal|engagement|anniversary|birthday|christmas|halloween|valentine|mother.?s day|father.?s day|graduation|housewarming)\b/.test(phrase))return 'Occasion-led';
+ if(/\b(gift|gifts|present|for her|for him|for mom|for dad|for teacher|for students|pet lovers)\b/.test(phrase))return 'Gift-led';
  if(/\b(minimalist|vintage|boho|modern|aesthetic|style|styling|decor|gallery wall|inspiration)\b/.test(phrase))return 'Style & inspiration';
  return 'Purchase-ready';
 }

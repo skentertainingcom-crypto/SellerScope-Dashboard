@@ -42,7 +42,7 @@ let checks=loadChecks();
 function saveChecks(){try{localStorage.setItem(STORE_KEY,JSON.stringify(checks));return true}catch(e){notify('Saved for this session only; browser storage is unavailable.');return false}}
 function normalize(s){return String(s||'').toLowerCase().replace(/[’']/g,"'").replace(/[^a-z0-9+#.-]+/g,' ').trim().replace(/\s+/g,' ')}
 function tidyPhrase(s){return normalize(s).split(' ').filter(Boolean).join(' ')}
-function addUnique(arr, phrase){phrase=tidyPhrase(phrase).replace(/\b([a-z0-9+#.-]+)(\s+\1\b)+/gi,'$1');if(!phrase)return;const key=phrase.toLowerCase();if(!arr.some(x=>x.phrase.toLowerCase()===key)){const n=phrase.split(' ').length;const type=n<=2?'Short-tail':n<=4?'Mid-tail':'Long-tail';arr.push({phrase,type})}}
+function addUnique(arr, phrase){phrase=tidyPhrase(phrase).replace(/\b([a-z0-9+#.-]+(?:\s+[a-z0-9+#.-]+){0,3})\s+\1\b/gi,'$1').replace(/\b([a-z0-9+#.-]+)(\s+\1\b)+/gi,'$1');if(!phrase)return;const key=phrase.toLowerCase();if(!arr.some(x=>x.phrase.toLowerCase()===key)){const n=phrase.split(' ').length;const type=n<=2?'Short-tail':n<=4?'Mid-tail':'Long-tail';arr.push({phrase,type})}}
 function build(seed,mode){
  const s=tidyPhrase(seed), words=s.split(' '), arr=[];
  addUnique(arr,s);
@@ -55,7 +55,7 @@ function build(seed,mode){
   }
  }
  const generic=['for','with','and','the','a','an','of','to','gift','birthday','anniversary','personalized','custom','engraved','wedding','engagement','bridal','bride','modern','minimalist','boho','vintage','handmade','unique','best','decor','housewarming'];
- const core=words.filter(w=>!generic.includes(w)).join(' ')||s;
+ const core=words.filter(w=>!generic.includes(w)).join(' ');
  const has=word=>words.includes(word);
  const variants={
   general:[has('minimalist')?s:'minimalist '+s,has('vintage')?s:'vintage '+s,has('handmade')?s:'handmade '+s,has('gift')?'best '+s:'best '+s+' gift',s+' for everyday use',has('unique')?s:'unique '+s,has('order')?s:s+' made to order'],

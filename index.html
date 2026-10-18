@@ -58,7 +58,13 @@ function build(seed,mode){
   general:[has('minimalist')?s:'minimalist '+product,has('vintage')?s:'vintage '+product,has('handmade')?s:'handmade '+product,product+' gift',has('unique')?s:'unique '+product,has('order')?s:product+' made to order'],
   gift:core?[core+' gift',core+' gift for her',core+' birthday gift',core+' anniversary gift','unique '+core+' gift']:['gift for her','birthday gift for her','anniversary gift','unique gift for her','thoughtful gift for her'],
   personalized:core?['personalized '+core,'custom '+core,'engraved '+core,'personalized '+core+' gift','custom '+core+' made to order']:['personalized gift','custom gift','engraved gift','personalized keepsake','custom made to order'],
-  wedding:core?['bridal '+core,'wedding '+core,core+' for bride to be','classic '+core+' engagement gift','modern '+core+' wedding style']:['bridal gift','wedding gift','engagement gift','gift for bride to be','modern wedding gift'],
+  wedding:core?[
+   has('wedding')||has('engagement')||has('bridal')?s:'wedding '+product,
+   has('wedding')||has('engagement')||has('bridal')?s:'bridal '+product,
+   product+' for bride',
+   'personalized '+product+' gift',
+   'gift for bride and groom'
+  ]:['bridal gift','wedding gift','engagement gift','gift for bride to be','modern wedding gift'],
   home:core?['modern '+core,'minimalist '+core,'boho '+core,core+' for living room decor',core+' housewarming gift']:['modern home decor','minimalist home decor','boho home decor','living room decor','housewarming gift']
  };
  for(const phrase of (variants[mode]||variants.general))addUnique(arr,phrase);

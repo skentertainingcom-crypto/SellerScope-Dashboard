@@ -247,7 +247,7 @@ test('imports a valid backup and rejects an unsupported backup', async ({ page }
   page.once('dialog', dialog => { expect(dialog.message()).toContain('Import backup?'); return dialog.accept(); });
   await page.locator('#importBackup').setInputFiles(filePath);
   await expect(page.locator('#toast')).toContainText('Backup imported');
-  await expect(page.locator('#toast')).toContainText('5 invalid records');
+  await expect(page.locator('#toast')).toContainText('Skipped invalid records: 5');
   const importedChecks = await page.evaluate(() => JSON.parse(localStorage.getItem('sellerscope.keywordChecks.v1') || '{}'));
   expect(importedChecks).toEqual({ 'ceramic mug': { searches: '0', listings: '18', source: 'Manual test', date: '2026-10-18' } });
   await expect(page.locator('#savedProjects option')).toHaveCount(2);

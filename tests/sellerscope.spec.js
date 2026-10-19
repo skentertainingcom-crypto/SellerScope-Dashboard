@@ -742,14 +742,16 @@ test('ignores malformed nested saved-research records while retaining valid sets
 
 
 test('ignores malformed stored shortlist entries without breaking keyword research', async ({ page }) => {
-  await page.evaluate(() => localStorage.setItem('sellerscope.shortlist.v1', JSON.stringify({
-    'valid phrase': { selected: true, note: 'Keep this note' },
-    'string selection': { selected: 'yes', note: 'Invalid selection' },
-    'missing note': { selected: true },
-    'array entry': ['unexpected'],
-    'null entry': null,
-    'blank phrase': { selected: false, note: 'Blank key' }
-  })));
+  await page.addInitScript(() => {
+    localStorage.setItem('sellerscope.shortlist.v1', JSON.stringify({
+      'valid phrase': { selected: true, note: 'Keep this note' },
+      'string selection': { selected: 'yes', note: 'Invalid selection' },
+      'missing note': { selected: true },
+      'array entry': ['unexpected'],
+      'null entry': null,
+      '   ': { selected: false, note: 'Blank key' }
+    }));
+  });
   const pageErrors = [];
   page.on('pageerror', error => pageErrors.push(error.message));
   await page.reload();

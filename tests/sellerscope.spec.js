@@ -171,6 +171,7 @@ test('saves, restores, and deletes a keyword research set', async ({ page }) => 
   await expect(page.locator('#market')).toHaveValue('home');
   await expect(page.locator('#results .kw')).toHaveText(original);
 
+  page.once('dialog', dialog => dialog.accept());
   await page.locator('#deleteProject').click();
   await expect(page.locator('#savedProjects option')).toHaveCount(1);
   await expect(page.locator('#toast')).toContainText('deleted');
@@ -546,4 +547,30 @@ test('copies only the currently visible keyword ideas when filters or search are
   await page.locator('#keywordSearch').fill('no-match-at-all');
   await page.locator('#copyVisible').click();
   await expect(page.locator('#toast')).toContainText('No visible keyword ideas to copy');
+});
+
+
+test('renames saved research and requires confirmation before deleting it', async ({ page }) => {
+  await page.locator('#seed').fill('ceramic vase');
+  await page.locator('#generate').click();
+  await page.locator('#projectName').fill('Vase shortlist');
+  await page.locator('#saveProject').click();
+
+  await expect(page.locator('#savedCount')).toContainText('1 saved set');
+  await expect(page.locator('#savedProjects')).toContainText('Vase shortlist · ceramic vase');
+  await page.locator('#projectName').fill('Ceramic vase research');
+  await page.locator('#renameProject').click();
+  await expect(page.locator('#savedProjects')).toContainText('Ceramic vase research · ceramic vase');
+  await expect(page.locator('#toast')).toContainText('renamed');
+
+  page.once('dialog', dialog => dialog.dismiss());
+  await page.locator('#deleteProject').click();
+  await expect(page.locator('#savedCount')).toContainText('1 saved set');
+  await expect(page.locator('#savedProjects')).toContainText('Ceramic vase research · ceramic vase');
+
+  page.once('dialog', dialog => dialog.accept());
+  await page.locator('#deleteProject').click();
+  await expect(page.locator('#savedCount')).toContainText('0 saved sets');
+  await expect(page.locator('#savedProjects option')).toHaveCount(1);
+  await expect(page.locator('#toast')).toContainText('deleted from this device');
 });

@@ -227,12 +227,16 @@ test('imports a valid backup and rejects an unsupported backup', async ({ page }
     exportedAt: '2026-10-18T00:00:00.000Z',
     projects: [{
       id: 'imported-set-1',
-      name: 'Imported mugs',
-      seed: 'ceramic mug',
+      name: ' Imported mugs ',
+      seed: ' ceramic mug ',
       mode: 'home',
-      ideas: [{ phrase: 'ceramic mug', type: 'Short-tail' }],
+      ideas: [{ phrase: ' ceramic mug ', type: 'Short-tail' }],
       savedAt: '2026-10-18T00:00:00.000Z'
-    }],
+    },
+    { id: '   ', name: 'Blank ID', seed: 'ceramic mug', mode: 'home', ideas: [{ phrase: 'ceramic mug', type: 'Short-tail' }] },
+    { id: 'too-long-name', name: 'x'.repeat(61), seed: 'ceramic mug', mode: 'home', ideas: [{ phrase: 'ceramic mug', type: 'Short-tail' }] },
+    { id: 'bad-idea', name: 'Bad idea', seed: 'ceramic mug', mode: 'home', ideas: [{ phrase: '   ', type: 'Short-tail' }] }
+    ],
     checks: { 'ceramic mug': { searches: '0', listings: '18', source: 'Manual test', date: '2026-10-18' } },
     shortlist: { 'ceramic mug': { selected: true, note: 'Gift-ready product angle' } }
   };
@@ -240,6 +244,12 @@ test('imports a valid backup and rejects an unsupported backup', async ({ page }
   page.once('dialog', dialog => { expect(dialog.message()).toContain('Import backup?'); return dialog.accept(); });
   await page.locator('#importBackup').setInputFiles(filePath);
   await expect(page.locator('#toast')).toContainText('Backup imported');
+  await expect(page.locator('#toast')).toContainText('Skipped invalid records: 3');
+  const importedProjects = await page.evaluate(() => JSON.parse(localStorage.getItem('sellerscope.savedResearch.v1') || '[]'));
+  expect(importedProjects).toHaveLength(1);
+  expect(importedProjects[0].name).toBe('Imported mugs');
+  expect(importedProjects[0].seed).toBe('ceramic mug');
+  expect(importedProjects[0].ideas).toEqual([{ phrase: 'ceramic mug', type: 'Short-tail' }]);
   await expect(page.locator('#savedProjects option')).toHaveCount(2);
   await page.locator('#savedProjects').selectOption({ label: 'Imported mugs · ceramic mug' });
   await page.locator('#loadProject').click();

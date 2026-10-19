@@ -577,6 +577,37 @@ test('renames saved research and requires confirmation before deleting it', asyn
 });
 
 
+test('reports invalid backup records and duplicate saved sets before importing', async ({ page }) => {
+  await page.locator('#seed').fill('ceramic mug');
+  await page.locator('#generate').click();
+  await page.locator('#projectName').fill('Existing set');
+  await page.locator('#saveProject').click();
+  const existingId = await page.evaluate(() => JSON.parse(localStorage.getItem('sellerscope.savedResearch.v1'))[0].id);
+
+  const filePath = path.join(os.tmpdir(), 'sellerscope-partial-backup.json');
+  const backup = {
+    format: 'sellerscope-research-backup', version: 1,
+    projects: [
+      { id: existingId, name: 'Duplicate ID', seed: 'other mug', mode: 'home', ideas: [{ phrase: 'other mug', type: 'Short-tail' }] },
+      { id: 'invalid-set', name: 'Broken', seed: 'broken', mode: 'unknown', ideas: [] }
+    ],
+    checks: { 'ceramic mug': { searches: '10', listings: '25', source: 'Manual', date: '2026-10-18' }, broken: { searches: 7 } },
+    shortlist: { 'ceramic mug': { selected: true, note: 'Valid note' }, broken: { selected: 'yes' } }
+  };
+  fs.writeFileSync(filePath, JSON.stringify(backup));
+  page.once('dialog', async dialog => {
+    expect(dialog.message()).toContain('add 0 new saved sets (1 invalid sets will be skipped)');
+    expect(dialog.message()).toContain('1 invalid checks will be skipped');
+    expect(dialog.message()).toContain('1 invalid entries will be skipped');
+    await dialog.accept();
+  });
+  await page.locator('#importBackup').setInputFiles(filePath);
+  await expect(page.locator('#toast')).toContainText('Skipped invalid records: 3');
+  await expect(page.locator('#savedProjects option')).toHaveCount(2);
+  await expect(page.locator('#savedProjects')).not.toContainText('Duplicate ID');
+  fs.unlinkSync(filePath);
+});
+
 test('cancels backup import without changing saved research', async ({ page }) => {
   await page.locator('#seed').fill('ceramic vase');
   await page.locator('#generate').click();

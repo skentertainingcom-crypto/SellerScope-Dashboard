@@ -478,6 +478,24 @@ test('shows shortlist research gaps and exports an actionable listing test plan'
   fs.unlinkSync(filePath);
 });
 
+test('exports CSV with a UTF-8 BOM and preserves Unicode seller notes', async ({ page }) => {
+  await page.locator('#seed').fill('handmade ceramic mug');
+  await page.locator('#generate').click();
+  await page.locator('#results [data-shortlist]').first().check();
+  await page.locator('#results [data-note]').first().fill('Café 手作り — gift-ready');
+
+  const downloadPromise = page.waitForEvent('download');
+  await page.locator('#exportShortlist').click();
+  const download = await downloadPromise;
+  const filePath = path.join(os.tmpdir(), download.suggestedFilename());
+  await download.saveAs(filePath);
+  const csv = fs.readFileSync(filePath, 'utf8');
+  expect(csv.charCodeAt(0)).toBe(0xFEFF);
+  expect(csv).toContain('Café 手作り — gift-ready');
+  expect(csv).toContain('"keyword_phrase"');
+  fs.unlinkSync(filePath);
+});
+
 test('neutralizes spreadsheet formulas in user-controlled CSV fields', async ({ page }) => {
   await page.locator('#seed').fill('personalized necklace');
   await page.locator('#generate').click();

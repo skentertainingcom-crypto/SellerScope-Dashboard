@@ -616,6 +616,33 @@ test('warns before saving a 51st research set would discard the oldest', async (
   await expect(page.locator('#savedProjects')).not.toContainText('New research set');
 });
 
+test('warns when backup import would evict the oldest saved sets at the 50-set limit', async ({ page }) => {
+  const saved = Array.from({ length: 50 }, (_, i) => ({
+    id: 'saved-' + i, name: 'Saved set ' + i, seed: 'seed ' + i, mode: 'general',
+    ideas: [{ phrase: 'seed ' + i, type: 'Short-tail' }], savedAt: new Date(2026, 0, i + 1).toISOString()
+  }));
+  await page.evaluate((items) => localStorage.setItem('sellerscope.savedResearch.v1', JSON.stringify(items)), saved);
+  await page.reload();
+  const filePath = path.join(os.tmpdir(), 'sellerscope-overflow-backup.json');
+  const backup = {
+    format: 'sellerscope-research-backup', version: 1,
+    projects: [{ id: 'incoming-overflow', name: 'Incoming set', seed: 'new mug', mode: 'home', ideas: [{ phrase: 'new mug', type: 'Short-tail' }] }],
+    checks: {}, shortlist: {}
+  };
+  fs.writeFileSync(filePath, JSON.stringify(backup));
+  page.once('dialog', async dialog => {
+    expect(dialog.message()).toContain('1 oldest saved set will be removed');
+    expect(dialog.message()).toContain('Export a backup first');
+    await dialog.dismiss();
+  });
+  await page.locator('#importBackup').setInputFiles(filePath);
+  await expect(page.locator('#toast')).toHaveText('Backup import canceled. Your existing research was not changed.');
+  await expect(page.locator('#savedCount')).toContainText('50 saved sets');
+  await expect(page.locator('#savedProjects')).toContainText('Saved set 0 · seed 0');
+  await expect(page.locator('#savedProjects')).not.toContainText('Incoming set');
+  fs.unlinkSync(filePath);
+});
+
 test('reports invalid backup records and duplicate saved sets before importing', async ({ page }) => {
   await page.locator('#seed').fill('ceramic mug');
   await page.locator('#generate').click();

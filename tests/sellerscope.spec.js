@@ -658,19 +658,29 @@ test('reports invalid backup records and duplicate saved sets before importing',
       { id: 'invalid-set', name: 'Broken', seed: 'broken', mode: 'unknown', ideas: [] }
     ],
     checks: { 'ceramic mug': { searches: '10', listings: '25', source: 'Manual', date: '2026-10-18' }, broken: { searches: 7 } },
-    shortlist: { 'ceramic mug': { selected: true, note: 'Valid note' }, broken: { selected: 'yes' } }
+    shortlist: {
+      'ceramic mug': { selected: true, note: '  Valid note  ' },
+      broken: { selected: 'yes' },
+      '   ': { selected: true },
+      ['x'.repeat(501)]: { selected: true },
+      'bad note': { selected: true, note: 42 },
+      ' Ceramic Mug ': { selected: false, note: 'Duplicate should be skipped' }
+    }
   };
   fs.writeFileSync(filePath, JSON.stringify(backup));
   page.once('dialog', async dialog => {
     expect(dialog.message()).toContain('add 0 new saved sets (1 invalid sets will be skipped)');
     expect(dialog.message()).toContain('1 invalid checks will be skipped');
-    expect(dialog.message()).toContain('1 invalid entries will be skipped');
+    expect(dialog.message()).toContain('5 invalid entries will be skipped');
     await dialog.accept();
   });
   await page.locator('#importBackup').setInputFiles(filePath);
-  await expect(page.locator('#toast')).toContainText('Skipped invalid records: 3');
+  await expect(page.locator('#toast')).toContainText('Skipped invalid records: 7');
   await expect(page.locator('#savedProjects option')).toHaveCount(2);
   await expect(page.locator('#savedProjects')).not.toContainText('Duplicate ID');
+  const importedShortlist = await page.evaluate(() => JSON.parse(localStorage.getItem('sellerscope.shortlist.v1')));
+  expect(importedShortlist['ceramic mug']).toEqual({ selected: true, note: 'Valid note' });
+  expect(Object.keys(importedShortlist)).toEqual(['ceramic mug']);
   fs.unlinkSync(filePath);
 });
 

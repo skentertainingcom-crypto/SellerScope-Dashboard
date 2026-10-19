@@ -717,6 +717,33 @@ test('recovers safely from valid JSON with the wrong stored data shape', async (
 });
 
 
+test('normalizes saved research fields and rejects malformed IDs, text, and timestamps', async ({ page }) => {
+  const valid = {
+    id: '  valid-set  ', name: '  Valid mugs  ', seed: '  ceramic mug  ', mode: 'home',
+    ideas: [{ phrase: '  ceramic mug  ', type: 'Short-tail' }],
+    savedAt: '2026-10-18T10:00:00.000Z'
+  };
+  const malformed = [
+    { id: '   ', name: 'Blank ID', seed: 'mug', mode: 'general', ideas: [{ phrase: 'mug', type: 'Short-tail' }] },
+    { id: 'too-long-name', name: 'x'.repeat(201), seed: 'mug', mode: 'general', ideas: [{ phrase: 'mug', type: 'Short-tail' }] },
+    { id: 'blank-seed', name: 'Blank seed', seed: '   ', mode: 'general', ideas: [{ phrase: 'mug', type: 'Short-tail' }] },
+    { id: 'blank-phrase', name: 'Blank phrase', seed: 'mug', mode: 'general', ideas: [{ phrase: '   ', type: 'Short-tail' }] },
+    { id: 'bad-date', name: 'Bad timestamp', seed: 'mug', mode: 'general', ideas: [{ phrase: 'mug', type: 'Short-tail' }], savedAt: 'not-a-date' },
+    { id: 'empty-ideas', name: 'No ideas', seed: 'mug', mode: 'general', ideas: [] }
+  ];
+  await page.evaluate(({ valid, malformed }) => localStorage.setItem('sellerscope.savedResearch.v1', JSON.stringify([valid, ...malformed])), { valid, malformed });
+  const pageErrors = [];
+  page.on('pageerror', error => pageErrors.push(error.message));
+  await page.reload();
+  await expect(page.locator('#savedCount')).toContainText('1 saved set');
+  await expect(page.locator('#savedProjects')).toContainText('Valid mugs · ceramic mug');
+  await page.locator('#savedProjects').selectOption('valid-set');
+  await page.locator('#loadProject').click();
+  await expect(page.locator('#seed')).toHaveValue('ceramic mug');
+  await expect(page.locator('#results .kw').first()).toHaveText('ceramic mug');
+  expect(pageErrors).toEqual([]);
+});
+
 test('ignores malformed nested saved-research records while retaining valid sets', async ({ page }) => {
   const valid = { id: 'valid-set', name: 'Valid mugs', seed: 'ceramic mug', mode: 'home', ideas: [{ phrase: 'ceramic mug', type: 'Short-tail' }] };
   const malformed = [

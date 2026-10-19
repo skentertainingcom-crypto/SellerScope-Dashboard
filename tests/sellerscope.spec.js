@@ -715,3 +715,27 @@ test('recovers safely from valid JSON with the wrong stored data shape', async (
   await expect(page.locator('#toast')).toContainText('Etsy search was not performed');
   expect(pageErrors).toEqual([]);
 });
+
+
+test('ignores malformed nested saved-research records while retaining valid sets', async ({ page }) => {
+  const valid = { id: 'valid-set', name: 'Valid mugs', seed: 'ceramic mug', mode: 'home', ideas: [{ phrase: 'ceramic mug', type: 'Short-tail' }] };
+  const malformed = [
+    { id: 'bad-mode', name: 'Bad mode', seed: 'mug', mode: 'unknown', ideas: [{ phrase: 'mug', type: 'Short-tail' }] },
+    { id: 'bad-idea', name: 'Bad idea', seed: 'mug', mode: 'general', ideas: [{ phrase: 'mug', type: 'Unexpected' }] },
+    { id: 'null-idea', name: 'Null idea', seed: 'mug', mode: 'general', ideas: [null] },
+    { id: 'too-many-ideas', name: 'Too many ideas', seed: 'mug', mode: 'general', ideas: Array.from({ length: 501 }, () => ({ phrase: 'mug', type: 'Short-tail' })) },
+  ];
+  await page.evaluate(({ valid, malformed }) => localStorage.setItem('sellerscope.savedResearch.v1', JSON.stringify([valid, ...malformed])), { valid, malformed });
+  const pageErrors = [];
+  page.on('pageerror', error => pageErrors.push(error.message));
+  await page.reload();
+  await expect(page.locator('#savedCount')).toContainText('1 saved set');
+  await expect(page.locator('#savedProjects')).toContainText('Valid mugs · ceramic mug');
+  for (const name of ['Bad mode', 'Bad idea', 'Null idea', 'Too many ideas']) {
+    await expect(page.locator('#savedProjects')).not.toContainText(name);
+  }
+  await page.locator('#savedProjects').selectOption('valid-set');
+  await page.locator('#loadProject').click();
+  await expect(page.locator('#results .kw').first()).toHaveText('ceramic mug');
+  expect(pageErrors).toEqual([]);
+});

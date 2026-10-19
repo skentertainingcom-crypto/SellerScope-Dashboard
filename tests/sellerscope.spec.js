@@ -233,13 +233,23 @@ test('imports a valid backup and rejects an unsupported backup', async ({ page }
       ideas: [{ phrase: 'ceramic mug', type: 'Short-tail' }],
       savedAt: '2026-10-18T00:00:00.000Z'
     }],
-    checks: { 'ceramic mug': { searches: '0', listings: '18', source: 'Manual test', date: '2026-10-18' } },
+    checks: {
+      'ceramic mug': { searches: '0', listings: '18', source: 'Manual test', date: '2026-10-18' },
+      'empty source': { searches: '12', listings: '18', source: '   ', date: '2026-10-18' },
+      'invalid count': { searches: 'many', listings: '18', source: 'Manual test', date: '2026-10-18' },
+      'invalid date': { searches: '12', listings: '18', source: 'Manual test', date: '2026-02-31' },
+      'missing count': { listings: '18', source: 'Manual test', date: '2026-10-18' },
+      '': { searches: '12', listings: '18', source: 'Manual test', date: '2026-10-18' }
+    },
     shortlist: { 'ceramic mug': { selected: true, note: 'Gift-ready product angle' } }
   };
   fs.writeFileSync(filePath, JSON.stringify(backup));
   page.once('dialog', dialog => { expect(dialog.message()).toContain('Import backup?'); return dialog.accept(); });
   await page.locator('#importBackup').setInputFiles(filePath);
   await expect(page.locator('#toast')).toContainText('Backup imported');
+  await expect(page.locator('#toast')).toContainText('Skipped invalid records: 5');
+  const importedChecks = await page.evaluate(() => JSON.parse(localStorage.getItem('sellerscope.keywordChecks.v1') || '{}'));
+  expect(importedChecks).toEqual({ 'ceramic mug': { searches: '0', listings: '18', source: 'Manual test', date: '2026-10-18' } });
   await expect(page.locator('#savedProjects option')).toHaveCount(2);
   await page.locator('#savedProjects').selectOption({ label: 'Imported mugs · ceramic mug' });
   await page.locator('#loadProject').click();

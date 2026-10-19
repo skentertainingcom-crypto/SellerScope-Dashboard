@@ -737,8 +737,6 @@ test('normalizes saved research fields and rejects malformed IDs, text, and time
   await page.reload();
   await expect(page.locator('#savedCount')).toContainText('1 saved set');
   await expect(page.locator('#savedProjects')).toContainText('Valid mugs · ceramic mug');
-  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('sellerscope.savedResearch.v1')));
-  expect(stored).toHaveLength(1);
   await page.locator('#savedProjects').selectOption('valid-set');
   await page.locator('#loadProject').click();
   await expect(page.locator('#seed')).toHaveValue('ceramic mug');

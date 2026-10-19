@@ -237,6 +237,7 @@ test('imports a valid backup and rejects an unsupported backup', async ({ page }
     shortlist: { 'ceramic mug': { selected: true, note: 'Gift-ready product angle' } }
   };
   fs.writeFileSync(filePath, JSON.stringify(backup));
+  page.once('dialog', dialog => { expect(dialog.message()).toContain('Import backup?'); return dialog.accept(); });
   await page.locator('#importBackup').setInputFiles(filePath);
   await expect(page.locator('#toast')).toContainText('Backup imported');
   await expect(page.locator('#savedProjects option')).toHaveCount(2);
@@ -573,4 +574,31 @@ test('renames saved research and requires confirmation before deleting it', asyn
   await expect(page.locator('#savedCount')).toContainText('0 saved sets');
   await expect(page.locator('#savedProjects option')).toHaveCount(1);
   await expect(page.locator('#toast')).toContainText('deleted from this device');
+});
+
+
+test('cancels backup import without changing saved research', async ({ page }) => {
+  await page.locator('#seed').fill('ceramic vase');
+  await page.locator('#generate').click();
+  await page.locator('#projectName').fill('Existing research');
+  await page.locator('#saveProject').click();
+
+  const filePath = path.join(os.tmpdir(), 'sellerscope-cancel-import.json');
+  const backup = {
+    format: 'sellerscope-research-backup', version: 1,
+    projects: [{ id: 'incoming-set', name: 'Incoming set', seed: 'ceramic mug', mode: 'home', ideas: [{ phrase: 'ceramic mug', type: 'Short-tail' }] }],
+    checks: { 'ceramic mug': { searches: '12', listings: '30', source: 'Imported source', date: '2026-10-18' } },
+    shortlist: { 'ceramic mug': { selected: true, note: 'Incoming note' } }
+  };
+  fs.writeFileSync(filePath, JSON.stringify(backup));
+  page.once('dialog', async dialog => {
+    expect(dialog.message()).toContain('matching phrases');
+    await dialog.dismiss();
+  });
+  await page.locator('#importBackup').setInputFiles(filePath);
+  await expect(page.locator('#toast')).toHaveText('Backup import canceled. Your existing research was not changed.');
+  await expect(page.locator('#savedProjects option')).toHaveCount(2);
+  await expect(page.locator('#savedProjects')).toContainText('Existing research · ceramic vase');
+  await expect(page.locator('#savedProjects')).not.toContainText('Incoming set');
+  fs.unlinkSync(filePath);
 });

@@ -38,7 +38,7 @@ button{border:0;border-radius:10px;padding:12px 16px;font-weight:750;background:
 </section><p class="foot">EtsyScope is an independent project and is not affiliated with Etsy. Metrics are intentionally blank until a reliable, permitted data source is connected. This prototype has no backend, login, or live Etsy connection.</p></main>
 <script>
 let current=[],activeFilter='All',shortlistOnly=false;const $=id=>document.getElementById(id);const STORE_KEY='sellerscope.keywordChecks.v1';const PROJECTS_KEY='sellerscope.savedResearch.v1';const SHORTLIST_KEY='sellerscope.shortlist.v1';
-function loadChecks(){try{return JSON.parse(localStorage.getItem(STORE_KEY)||'{}')}catch(e){return {}}}
+function loadChecks(){try{const value=JSON.parse(localStorage.getItem(STORE_KEY)||'{}');return value&&typeof value==='object'&&!Array.isArray(value)?value:{}}catch(e){return {}}}
 let checks=loadChecks();
 function loadShortlist(){try{const v=JSON.parse(localStorage.getItem(SHORTLIST_KEY)||'{}');return v&&typeof v==='object'&&!Array.isArray(v)?v:{}}catch(e){return {}}}
 let shortlist=loadShortlist();

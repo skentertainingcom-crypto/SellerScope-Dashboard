@@ -582,12 +582,13 @@ test('reports invalid backup records and duplicate saved sets before importing',
   await page.locator('#generate').click();
   await page.locator('#projectName').fill('Existing set');
   await page.locator('#saveProject').click();
+  const existingId = await page.evaluate(() => JSON.parse(localStorage.getItem('sellerscope.savedResearch.v1'))[0].id);
 
   const filePath = path.join(os.tmpdir(), 'sellerscope-partial-backup.json');
   const backup = {
     format: 'sellerscope-research-backup', version: 1,
     projects: [
-      { id: 'existing-set', name: 'Duplicate ID', seed: 'other mug', mode: 'home', ideas: [{ phrase: 'other mug', type: 'Short-tail' }] },
+      { id: existingId, name: 'Duplicate ID', seed: 'other mug', mode: 'home', ideas: [{ phrase: 'other mug', type: 'Short-tail' }] },
       { id: 'invalid-set', name: 'Broken', seed: 'broken', mode: 'unknown', ideas: [] }
     ],
     checks: { 'ceramic mug': { searches: '10', listings: '25', source: 'Manual', date: '2026-10-18' }, broken: { searches: 7 } },

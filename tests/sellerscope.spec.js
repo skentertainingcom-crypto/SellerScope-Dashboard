@@ -752,7 +752,6 @@ test('ignores malformed stored shortlist entries without breaking keyword resear
       '   ': { selected: false, note: 'Blank key' }
     }));
   });
-  await page.reload();
   const pageErrors = [];
   page.on('pageerror', error => pageErrors.push(error.message));
   await page.reload();

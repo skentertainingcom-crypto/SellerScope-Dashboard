@@ -577,6 +577,25 @@ test('renames saved research and requires confirmation before deleting it', asyn
 });
 
 
+test('warns before saving a 51st research set would discard the oldest', async ({ page }) => {
+  const saved = Array.from({ length: 50 }, (_, i) => ({
+    id: 'saved-' + i, name: 'Saved set ' + i, seed: 'seed ' + i, mode: 'general',
+    ideas: [{ phrase: 'seed ' + i, type: 'Short-tail' }], savedAt: new Date(2026, 0, i + 1).toISOString()
+  }));
+  await page.evaluate((items) => localStorage.setItem('sellerscope.savedResearch.v1', JSON.stringify(items)), saved);
+  await page.reload();
+  await page.locator('#seed').fill('new ceramic vase');
+  await page.locator('#generate').click();
+  await page.locator('#projectName').fill('New research set');
+  page.once('dialog', dialog => dialog.dismiss());
+  await page.locator('#saveProject').click();
+  await expect(page.locator('#toast')).toHaveText('Save canceled. Your existing saved research was kept.');
+  await expect(page.locator('#savedCount')).toContainText('50 saved sets');
+  await expect(page.locator('#savedProjects')).toContainText('Saved set 49 · seed 49');
+  await expect(page.locator('#savedProjects')).toContainText('Saved set 0 · seed 0');
+  await expect(page.locator('#savedProjects')).not.toContainText('New research set');
+});
+
 test('reports invalid backup records and duplicate saved sets before importing', async ({ page }) => {
   await page.locator('#seed').fill('ceramic mug');
   await page.locator('#generate').click();

@@ -739,3 +739,30 @@ test('ignores malformed nested saved-research records while retaining valid sets
   await expect(page.locator('#results .kw').first()).toHaveText('ceramic mug');
   expect(pageErrors).toEqual([]);
 });
+
+
+test('imports only one saved research set for duplicate IDs inside a backup', async ({ page }) => {
+  const filePath = path.join(os.tmpdir(), 'sellerscope-duplicate-import-ids.json');
+  const backup = {
+    format: 'sellerscope-research-backup', version: 1,
+    projects: [
+      { id: 'duplicate-incoming', name: 'First version', seed: 'ceramic mug', mode: 'home', ideas: [{ phrase: 'ceramic mug', type: 'Short-tail' }] },
+      { id: 'duplicate-incoming', name: 'Second version', seed: 'glass mug', mode: 'home', ideas: [{ phrase: 'glass mug', type: 'Short-tail' }] },
+      { id: 'unique-incoming', name: 'Unique set', seed: 'linen tote', mode: 'general', ideas: [{ phrase: 'linen tote', type: 'Short-tail' }] }
+    ],
+    checks: {}, shortlist: {}
+  };
+  fs.writeFileSync(filePath, JSON.stringify(backup));
+  page.once('dialog', async dialog => {
+    expect(dialog.message()).toContain('add 2 new saved sets');
+    await dialog.accept();
+  });
+  await page.locator('#importBackup').setInputFiles(filePath);
+  await expect(page.locator('#savedCount')).toContainText('2 saved sets');
+  await expect(page.locator('#savedProjects')).toContainText('First version · ceramic mug');
+  await expect(page.locator('#savedProjects')).toContainText('Unique set · linen tote');
+  await expect(page.locator('#savedProjects')).not.toContainText('Second version');
+  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('sellerscope.savedResearch.v1')));
+  expect(stored.map(item => item.id)).toEqual(['duplicate-incoming', 'unique-incoming']);
+  fs.unlinkSync(filePath);
+});

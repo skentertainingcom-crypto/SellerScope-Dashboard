@@ -9,6 +9,33 @@ test.beforeEach(async ({ page }) => {
   await page.reload();
 });
 
+test('sanitizes malformed stored manual keyword checks while retaining valid records', async ({ page }) => {
+  const pageErrors = [];
+  page.on('pageerror', error => pageErrors.push(error.message));
+  const valid = { searches: '12', listings: '0', source: 'Manual source', date: '2026-10-18' };
+  const stored = {
+    'ceramic vase': valid,
+    '   ': valid,
+    brokenNull: null,
+    brokenArray: [],
+    brokenCount: { searches: '-1', listings: '20', source: 'Manual source', date: '2026-10-18' },
+    missingSource: { searches: '12', listings: '20', date: '2026-10-18' },
+    invalidDate: { searches: '12', listings: '20', source: 'Manual source', date: '2026-02-30' },
+  };
+  await page.evaluate(value => localStorage.setItem('sellerscope.keywordChecks.v1', JSON.stringify(value)), stored);
+  await page.reload();
+  await page.locator('#seed').fill('ceramic vase');
+  await page.locator('#generate').click();
+  await expect(page.locator('#results .kw').first()).toHaveText('ceramic vase');
+  const row = page.locator('#results tr').filter({ hasText: 'ceramic vase' }).first();
+  await expect(row.locator('.searches')).toHaveText('12');
+  await expect(row.locator('.listings')).toHaveText('0');
+  await expect(row.locator('.verify-state')).toContainText('Manual source');
+  const persisted = await page.evaluate(() => JSON.parse(localStorage.getItem('sellerscope.keywordChecks.v1')));
+  expect(persisted).toEqual({ 'ceramic vase': valid });
+  expect(pageErrors).toEqual([]);
+});
+
 test('generates unique ideas and updates the count', async ({ page }) => {
   await expect(page).toHaveTitle('EtsyScope — Keyword Research');
   await expect(page.locator('.brand')).toHaveText('EtsyScope');

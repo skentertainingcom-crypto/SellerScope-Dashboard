@@ -699,3 +699,19 @@ test('cancels backup import without changing saved research', async ({ page }) =
   await expect(page.locator('#savedProjects')).not.toContainText('Incoming set');
   fs.unlinkSync(filePath);
 });
+
+test('recovers safely from valid JSON with the wrong stored data shape', async ({ page }) => {
+  const pageErrors = [];
+  page.on('pageerror', error => pageErrors.push(error.message));
+  await page.evaluate(() => {
+    localStorage.setItem('sellerscope.keywordChecks.v1', 'null');
+    localStorage.setItem('sellerscope.shortlist.v1', '[]');
+    localStorage.setItem('sellerscope.savedResearch.v1', '{"unexpected":"shape"}');
+  });
+  await page.reload();
+  await page.locator('#seed').fill('handmade ceramic mug');
+  await page.locator('#generate').click();
+  await expect(page.locator('#results .kw').first()).toBeVisible();
+  await expect(page.locator('#toast')).toContainText('Etsy search was not performed');
+  expect(pageErrors).toEqual([]);
+});

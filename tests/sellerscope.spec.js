@@ -577,6 +577,26 @@ test('renames saved research and requires confirmation before deleting it', asyn
 });
 
 
+test('does not keep an unsaved research set in memory when browser storage fails', async ({ page }) => {
+  await page.locator('#seed').fill('ceramic vase');
+  await page.locator('#generate').click();
+  await page.locator('#projectName').fill('Storage failure test');
+  await page.evaluate(() => {
+    const original = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (key, value) {
+      if (key === 'sellerscope.savedResearch.v1') throw new DOMException('Quota exceeded', 'QuotaExceededError');
+      return original.call(this, key, value);
+    };
+  });
+  await page.locator('#saveProject').click();
+  await expect(page.locator('#toast')).toContainText('Could not save research');
+  await expect(page.locator('#savedCount')).toContainText('0 saved sets');
+  await page.evaluate(() => { delete Storage.prototype.setItem; });
+  await page.reload();
+  await expect(page.locator('#savedCount')).toContainText('0 saved sets');
+  await expect(page.locator('#savedProjects')).not.toContainText('Storage failure test');
+});
+
 test('warns before saving a 51st research set would discard the oldest', async ({ page }) => {
   const saved = Array.from({ length: 50 }, (_, i) => ({
     id: 'saved-' + i, name: 'Saved set ' + i, seed: 'seed ' + i, mode: 'general',
